@@ -50,10 +50,10 @@ wire[7:0]   c_ram_din;
 wire[7:0]   c_ram_q;
 wire        c_ram_r_wn;
 
-wire        c_dmc_req      
-wire        c_dmc_gnt      
-wire[15:0]  c_dmc_addr     
-wire[7:0]   c_dmc_rdata    
+wire        c_dmc_req      ;
+wire        c_dmc_gnt      ;
+wire[15:0]  c_dmc_addr     ;
+wire[7:0]   c_dmc_rdata    ;
 wire        c_irq_apu_n;
 
 wire c_rstn_cpu;
