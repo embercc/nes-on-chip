@@ -56,6 +56,16 @@ wire[15:0]  c_dmc_addr     ;
 wire[7:0]   c_dmc_rdata    ;
 wire        c_irq_apu_n;
 
+
+wire        c_spr_req   ,
+wire        c_spr_gnt   ,
+wire[15:0]  c_spr_addr  ,
+wire        c_spr_wn    ,
+wire[7:0]   c_spr_wdata ,
+wire[7:0]   c_spr_rdata ,
+
+
+
 wire c_rstn_cpu;
 wire c_rstn_ppu;
 wire c_rstn_lcd;
@@ -112,20 +122,20 @@ nes_bus nes_bus(
     .o_cpu_pause    (c_cpu_pause),
     .i_cpu_addr     (c_cpu_addr),      //input [15:0]    
     .i_cpu_r_wn     (c_cpu_r_wn),      //input           
-    .o_cpu_rdata    (c_cpu_rdata),     //cpu read
     .i_cpu_wdata    (c_cpu_wdata),     //cpu_write
-        
+    .o_cpu_rdata    (c_cpu_rdata),     //cpu read
+            
     .i_dmc_req      (c_dmc_req  ),//input           
     .o_dmc_gnt      (c_dmc_gnt  ),//output          
     .i_dmc_addr     (c_dmc_addr ),//input   [15:0]  
     .o_dmc_rdata    (c_dmc_rdata),//output          
     
-    .i_spr_req      (),//input           
-    .o_spr_gnt      (),//output          
-    .i_spr_addr     (),//input   [15:0]  
-    .i_spr_wn       (),//input
-    .i_spr_wdata    (),//input           
-    .i_spr_rdata    (),//output          
+    .i_spr_req      (c_spr_req),//input           
+    .o_spr_gnt      (c_spr_gnt),//output          
+    .i_spr_addr     (c_spr_addr),//input   [15:0]  
+    .i_spr_wn       (c_spr_wn),//input
+    .i_spr_wdata    (c_spr_wdata),//input           
+    .o_spr_rdata    (c_spr_rdata),//output          
 
     .o_bus_addr     (c_bus_addr),//output  [15:0]  
     .o_bus_wdata    (c_bus_wdata),//output  [7:0]               
@@ -185,9 +195,16 @@ ppu_2C02 ppu_2C02(
     .i_lcd_rstn     (c_rstn_lcd),//input           
 
     .i_bus_addr     (c_bus_addr),//input  [15:0]   
-    .i_bus_wdata    (c_bus_wdata),//input   [7:0]   
     .i_bus_wn       (c_bus_r_wn),//input           
-    .o_reg_rdata    (c_ppu_rdata),//output  [7:0]   
+    .i_bus_wdata    (c_bus_wdata),//input   [7:0]   
+    .o_ppu_rdata    (c_ppu_rdata),//output  [7:0]   
+    
+    .o_spr_req      (c_spr_req),//    output          
+    .i_spr_gnt      (c_spr_gnt),//    input           
+    .o_spr_addr     (c_spr_addr),//    output  [15:0]  
+    .o_spr_wn       (c_spr_wn),//    output          
+    .o_spr_wdata    (c_spr_wdata),//    output  [7:0]   
+    .i_spr_rdata    (c_spr_rdata),//    input   [7:0]   
     
     .o_nmi_n        (c_nmi_n),//input
     

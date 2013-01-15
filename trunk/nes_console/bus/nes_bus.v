@@ -5,8 +5,9 @@ module nes_bus(
     output          o_cpu_pause     ,
     input   [15:0]  i_cpu_addr      ,
     input           i_cpu_r_wn      ,//1 read, 0 write
-    output  [7:0]   o_cpu_rdata     ,
     input   [7:0]   i_cpu_wdata     ,
+    output  [7:0]   o_cpu_rdata     ,
+    
         
     input           i_dmc_req       ,
     output          o_dmc_gnt       ,
@@ -18,7 +19,7 @@ module nes_bus(
     input   [15:0]  i_spr_addr      ,
     input           i_spr_wn        ,//1 read, 0 write
     input           i_spr_wdata     ,
-    output          i_spr_rdata     ,
+    output          o_spr_rdata     ,
     
     //slv devices
     //write
