@@ -8,9 +8,10 @@ module nes_mmc_set(
     input           i_bus_r_wn      ,
     output[7:0]     o_mmc_rdata     ,
     
-                                    
     output[22:0]    o_fl_addr       ,
     input [7:0]     i_fl_rdata      ,
+    
+    output[19:12]   o_sram_addr_ext ,
     
     output          o_irq_n
 );
@@ -19,7 +20,7 @@ module nes_mmc_set(
     wire        c_mmc_hit;
     wire        c_mmc_regw;
     reg [22:15] r_addr_ext;
-    
+    reg [19:12] r_sram_addr_ext;
     assign  c_mmc_hit = i_bus_addr[15];
     assign  c_mmc_regw = c_mmc_hit & ~i_bus_r_wn;
     //the shit always-block below is just for test right now.
@@ -28,13 +29,16 @@ module nes_mmc_set(
             r_addr_ext <= 8'h0;
         end
         else begin
-            /*
-            if(~i_mmc_r_wn) begin
-                if(i_mmc_addr==16'h8000) begin
-                    r_addr_ext <= r_addr_ext + 5'h1;
-                end
-            end
-            */
+            r_addr_ext <= 8'h0;
+        end
+    end
+    
+    always @(posedge i_clk or negedge i_rstn) begin
+        if(~i_rstn) begin
+            r_sram_addr_ext <= 8'h0;
+        end
+        else begin
+            r_sram_addr_ext <= 8'h0;
         end
     end
     
