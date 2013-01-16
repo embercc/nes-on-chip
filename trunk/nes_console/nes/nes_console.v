@@ -57,12 +57,12 @@ wire[7:0]   c_dmc_rdata    ;
 wire        c_irq_apu_n;
 
 
-wire        c_spr_req   ,
-wire        c_spr_gnt   ,
-wire[15:0]  c_spr_addr  ,
-wire        c_spr_wn    ,
-wire[7:0]   c_spr_wdata ,
-wire[7:0]   c_spr_rdata ,
+wire        c_spr_req   ;
+wire        c_spr_gnt   ;
+wire[15:0]  c_spr_addr  ;
+wire        c_spr_wn    ;
+wire[7:0]   c_spr_wdata ;
+wire[7:0]   c_spr_rdata ;
 
 
 
@@ -160,9 +160,11 @@ nes_mmc_set mmc_cart(
     .i_bus_r_wn     (c_bus_r_wn),//input           
     .o_mmc_rdata    (c_mmc_rdata),//output[7:0]     
     
-    
     .o_fl_addr      (o_fl_addr), //output[22:0]
     .i_fl_rdata     (i_fl_rdata),//input [7:0]     
+    
+    
+    .o_sram_addr_ext(o_sram_addr[19:12]),
     .o_irq_n        (c_irq_mmc_n)
 );
 

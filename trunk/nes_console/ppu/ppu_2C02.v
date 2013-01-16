@@ -35,21 +35,21 @@ wire[16:0]  c_vbuf_addr;
 wire[7:0]   c_vbuf_hsv;
 wire        c_vblank;
 
-wire[7:0]   c_oam_cfg_addr  ,
-wire        c_oam_cfg_we    ,
-wire[7:0]   c_oam_cfg_wdata ,
-wire[7:0]   c_oam_cfg_rdata ,
-wire[5:0]   c_oam_addr  ;
-wire[31:0]  c_oam_rdata ;
+wire[7:0]   c_oam_cfg_addr  ;
+wire        c_oam_cfg_we    ;
+wire[7:0]   c_oam_cfg_wdata ;
+wire[7:0]   c_oam_cfg_rdata ;
+wire[5:0]   c_oam_addr      ;
+wire[31:0]  c_oam_rdata     ;
 
 wire[23:0]  c_rom_q;
 wire[14:0]  c_rom_addr;
 
 
-
+/*
 assign c_rom_addr = {c_vbuf_addr[15:9], c_vbuf_addr[7:0]};
 assign c_vbuf_hsv = c_rom_q[7:0];
-
+*/
 //assign o_nmi_n = 1'b1;
 
 
@@ -107,6 +107,15 @@ dpram_oam_256x8_64x32	oam_inst (
 );
 
 
+ppu_vbuf ppu_vbuf(
+    .i_ppu_clk      (i_ppu_clk),//input           
+    .i_lcd_clk      (i_lcd_clk),//input           
+    .i_waddr        (),//input   [16:0]  
+    .i_we           (),//input           
+    .i_wdata        (),//input   [7:0]   
+    .i_raddr        (c_vbuf_addr),//input   [16:0]  
+    .o_rdata        (c_vbuf_hsv) //output  [7:0]   
+);
 
 
 
@@ -127,13 +136,12 @@ dpram_oam_256x8_64x32	oam_inst (
 
 
 
-
-
+/*
 rom_256x128x24	rom_256x128x24_inst (
 	.address    ( c_rom_addr ),
 	.clock      ( i_lcd_clk ),
 	.q          ( c_rom_q )
 );
-
+*/
 
 endmodule

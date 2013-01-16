@@ -139,7 +139,7 @@ always @ ( posedge i_cpu_clk or negedge i_cpu_rstn) begin
         r_ppuscrolly <= 8'h0;
     end
     else begin
-        if(c_is_ppu & (c_ppu_reg==3'h5) $ ~i_bus_wn) begin
+        if(c_is_ppu & (c_ppu_reg==3'h5) & ~i_bus_wn) begin
             if(r_wcnt)
                 r_ppuscrolly <= i_bus_wdata;
             else
@@ -154,7 +154,7 @@ always @ ( posedge i_cpu_clk or negedge i_cpu_rstn) begin
         r_ppuaddr <= 16'h0;
     end
     else begin
-        if(c_is_ppu & (c_ppu_reg==3'h6) $ ~i_bus_wn) begin
+        if(c_is_ppu & (c_ppu_reg==3'h6) & ~i_bus_wn) begin
             if(r_wcnt)
                 r_ppuaddr[7:0] <= i_bus_wdata;
             else
