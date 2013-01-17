@@ -201,7 +201,7 @@ wire    c_clk_ppu;
 wire    c_clk_ppu_sram;
 wire    c_rstn_sync_cpu;
 wire    c_rstn_sync_ppu;
-
+reg  [7:0] r_pwup_cnt;
     
 wire  [15:0]  c_nes_cpu_pc        ;
 wire  [7:0]   c_nes_cpu_sp        ;
@@ -259,7 +259,13 @@ wire    c_mgr_initdone;
 /*
 reset signal generate
 */
-assign i_rstn = KEY[0];
+always @(posedge c_clk_cpu) begin
+    if(r_pwup_cnt==8'hff)
+        r_pwup_cnt<=8'hff;
+    else
+        r_pwup_cnt <= r_pwup_cnt + 8'h1;
+end
+assign i_rstn = KEY[0] & r_pwup_cnt[7];
 
 
 /*
@@ -346,7 +352,7 @@ nes_console nes_console(
     .o_sram_we_n     (c_nes_sram_we_n),//output          
     .o_sram_oe_n     (c_nes_sram_oe_n),//output          
     .o_sram_ub_n     (c_nes_sram_ub_n),//output          
-    .o_sram_le_n     (c_nes_sram_lb_n),//output          
+    .o_sram_lb_n     (c_nes_sram_lb_n),//output          
     .o_fl_addr       (c_nes_fl_addr),//output  [22:0]  
     .i_fl_rdata      (c_fl_q),//input   [7:0]   
     .o_lcd_pixel     ({MTL_R, MTL_G, MTL_B}),

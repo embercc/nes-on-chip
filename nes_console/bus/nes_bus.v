@@ -12,14 +12,14 @@ module nes_bus(
     input           i_dmc_req       ,
     output          o_dmc_gnt       ,
     input   [15:0]  i_dmc_addr      ,
-    output          o_dmc_rdata     ,
+    output  [7:0]   o_dmc_rdata     ,
 
     input           i_spr_req       ,
     output          o_spr_gnt       ,
     input   [15:0]  i_spr_addr      ,
     input           i_spr_wn        ,//1 read, 0 write
-    input           i_spr_wdata     ,
-    output          o_spr_rdata     ,
+    input   [7:0]   i_spr_wdata     ,
+    output  [7:0]   o_spr_rdata     ,
     
     //slv devices
     //write
@@ -67,7 +67,7 @@ bus master arbitor
 always @ ( * ) begin
     if(i_dmc_req) begin
         c_bus_addr = i_dmc_addr;
-        c_bus_wdata = 16'h0;
+        c_bus_wdata = 8'h0;
         c_bus_wn = 1'b1;
     end
     else if(i_spr_req) begin
