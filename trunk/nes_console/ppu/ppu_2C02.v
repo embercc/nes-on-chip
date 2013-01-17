@@ -1,32 +1,41 @@
 module ppu_2C02(
-    input           i_cpu_clk   ,
-    input           i_cpu_rstn  ,
-    input           i_ppu_clk   ,
-    input           i_ppu_rstn  ,
-    input           i_lcd_clk   ,
-    input           i_lcd_rstn  ,
+    input           i_cpu_clk       ,
+    input           i_cpu_rstn      ,
+    input           i_ppu_clk       ,
+    input           i_ppu_rstn      ,
+    input           i_lcd_clk       ,
+    input           i_lcd_rstn      ,
     //slave port
-    input   [15:0]  i_bus_addr  ,
-    input           i_bus_wn    ,
-    input   [7:0]   i_bus_wdata ,
-    output  [7:0]   o_ppu_rdata ,
+    input   [15:0]  i_bus_addr      ,
+    input           i_bus_wn        ,
+    input   [7:0]   i_bus_wdata     ,
+    output  [7:0]   o_ppu_rdata     ,
     //master port
-    output          o_spr_req   ,
-    input           i_spr_gnt   ,
-    output  [15:0]  o_spr_addr  ,
-    output          o_spr_wn    ,
-    output  [7:0]   o_spr_wdata ,
-    input   [7:0]   i_spr_rdata ,
+    output          o_spr_req       ,
+    input           i_spr_gnt       ,
+    output  [15:0]  o_spr_addr      ,
+    output          o_spr_wn        ,
+    output  [7:0]   o_spr_wdata     ,
+    input   [7:0]   i_spr_rdata     ,
     
-    output          o_nmi_n     ,
+    output          o_nmi_n         ,
+    input   [2:0]   i_mirror_mode   ,
     
-    output [7:0]    o_lcd_r     ,
-    output [7:0]    o_lcd_g     ,
-    output [7:0]    o_lcd_b     ,
-    output          o_lcd_hsd   ,
-    output          o_lcd_vsd   ,
+    output  [11:0]  o_sram_addr     ,
+    output  [15:0]  o_sram_wdata    ,
+    input   [15:0]  i_sram_rdata    ,
+    output          o_sram_we_n     ,
+    output          o_sram_oe_n     ,
+    output          o_sram_ub_n     ,
+    output          o_sram_lb_n     ,
     
-    input  [9:0]    i_jp_vec_1p ,
+    output [7:0]    o_lcd_r         ,
+    output [7:0]    o_lcd_g         ,
+    output [7:0]    o_lcd_b         ,
+    output          o_lcd_hsd       ,
+    output          o_lcd_vsd       ,
+    
+    input  [9:0]    i_jp_vec_1p     ,
     input  [9:0]    i_jp_vec_2p
 );
 
@@ -42,9 +51,16 @@ wire[7:0]   c_oam_cfg_rdata ;
 wire[5:0]   c_oam_addr      ;
 wire[31:0]  c_oam_rdata     ;
 
+wire[15:0]  c_vram_addr     ;
+wire        c_vram_we       ;
+wire[7:0]   c_vram_wdata    ;
+wire[7:0]   c_vram_rdata    ;
+wire        c_2007_visit    ;
+    
+/*
 wire[23:0]  c_rom_q;
 wire[14:0]  c_rom_addr;
-
+*/
 
 /*
 assign c_rom_addr = {c_vbuf_addr[15:9], c_vbuf_addr[7:0]};
@@ -81,19 +97,45 @@ ppu_cfg ppu_cfg(
     .o_oam_we       (c_oam_cfg_we   ),//output          
     .o_oam_wdata    (c_oam_cfg_wdata),//output  [7:0]   
     .i_oam_rdata    (c_oam_cfg_rdata),//input   [7:0]   
-    .o_vram_addr    (),//output  [15:0]  
-    .o_vram_we      (),//output          
-    .o_vram_wdata   (),//output  [7:0]   
-    .i_vram_rdata   (),//input   [7:0]   
+    .o_vram_addr    (c_vram_addr),//output  [15:0]  
+    .o_vram_we      (c_vram_we),//output          
+    .o_vram_wdata   (c_vram_wdata),//output  [7:0]   
+    .i_vram_rdata   (c_vram_rdata),//input   [7:0]   
+    .o_2007_visit   (c_2007_visit),//output
     .i_spr_ovfl     (),//input
     .i_spr_0hit     (),//input
     .i_vblank       (c_vblank),//input
     .o_nmi_n        (o_nmi_n) //output
 );
 
+ppu_vram ppu_vram(
+    .i_cpu_clk          (i_cpu_clk), //input               
+    .i_cpu_rstn         (i_cpu_rstn), //input               
+    .i_ppu_clk          (i_ppu_clk), //input               
+    .i_ppu_rstn         (i_ppu_rstn), //input               
+    .i_vram_addr        (c_vram_addr), //input       [15:0]  
+    .i_vram_we          (c_vram_we), //input               
+    .i_vram_wdata       (c_vram_wdata), //input       [7:0]   
+    .o_vram_rdata       (c_vram_rdata), //output      [7:0]   
+    .i_2007_visit       (c_2007_visit), //input               
+    .i_mirror_mode      (i_mirror_mode), //input       [2:0]   
+    .i_pt_addr          (), //input       [11:0]  
+    .o_pt_rdata         (), //output reg  [15:0]  
+    .i_nt_addr          (), //input       [11:0]  
+    .o_nt_rdata         (), //output      [7:0]   
+    .i_plt_addr         (), //input       [4:0]   
+    .o_plt_rdata        (), //output      [7:0]   
+    .o_sram_addr        (o_sram_addr), //output      [11:0]  
+    .o_sram_wdata       (o_sram_wdata), //output      [15:0]  
+    .i_sram_rdata       (i_sram_rdata), //input       [15:0]  
+    .o_sram_we_n        (o_sram_we_n), //output              
+    .o_sram_oe_n        (o_sram_oe_n), //output              
+    .o_sram_ub_n        (o_sram_ub_n), //output              
+    .o_sram_lb_n        (o_sram_lb_n)  //output              
+    
+);
 
-
-dpram_oam_256x8_64x32	oam_inst (
+dpram_oam_256x8_64x32	ppu_oam (
 	.address_a  (c_oam_cfg_addr  ),
 	.address_b  (c_oam_addr  ),
 	.clock_a    (i_cpu_clk  ),

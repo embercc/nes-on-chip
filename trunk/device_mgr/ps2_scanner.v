@@ -333,7 +333,7 @@ assign o_jp_vector = {  r_up        ,
 
 
 
-ps2_tranceiver(
+ps2_tranceiver ps2_tranceiver(
     .i_clk           (i_clk),//input           
     .i_rstn          (i_rstn),//input           
     .i_ps2_clk       (i_ps2_clk),//input           

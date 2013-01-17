@@ -13,6 +13,7 @@ module nes_mmc_set(
     
     output[19:12]   o_sram_addr_ext ,
     
+    output[2:0]     o_mirror_mode   ,
     output          o_irq_n
 );
     parameter MMC_FUNC = 8'h00;
@@ -42,7 +43,9 @@ module nes_mmc_set(
         end
     end
     
-    assign  o_mmc_rdata = c_mmc_hit ? i_fl_rdata[7:0] : 8'h0;
     assign  o_fl_addr = c_mmc_hit ? {r_addr_ext, i_bus_addr[14:0]} : 23'h0;
+    assign  o_mmc_rdata = c_mmc_hit ? i_fl_rdata[7:0] : 8'h0;
+    assign  o_sram_addr_ext = r_sram_addr_ext;
+    assign  o_mirror_mode = 3'h1;
     assign  o_irq_n = 1'b1;
 endmodule

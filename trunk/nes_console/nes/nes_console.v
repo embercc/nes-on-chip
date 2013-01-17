@@ -11,7 +11,7 @@ module nes_console(
     output          o_sram_we_n     ,
     output          o_sram_oe_n     ,
     output          o_sram_ub_n     ,
-    output          o_sram_le_n     ,
+    output          o_sram_lb_n     ,
 //prg_rom, drived by cpu
     output  [22:0]  o_fl_addr       ,
     input   [7:0]   i_fl_rdata      ,
@@ -64,7 +64,7 @@ wire        c_spr_wn    ;
 wire[7:0]   c_spr_wdata ;
 wire[7:0]   c_spr_rdata ;
 
-
+wire[2:0]   c_mirror_mode;
 
 wire c_rstn_cpu;
 wire c_rstn_ppu;
@@ -96,6 +96,7 @@ rstn_sync rsync_ppu(
     .o_srstn    (c_rstn_ppu)
 );
     
+    
 cpu_6502 cpu(                      
     .i_CLK       (i_clk_cpu), //input              
     .i_PAUSE     (c_cpu_pause), //input              
@@ -114,6 +115,7 @@ cpu_6502 cpu(
     .o_IR        (o_cpu_ir),
     .o_P         (o_cpu_p)
 );
+
 
 nes_bus nes_bus(
     .i_clk          (i_clk_cpu),
@@ -163,8 +165,9 @@ nes_mmc_set mmc_cart(
     .o_fl_addr      (o_fl_addr), //output[22:0]
     .i_fl_rdata     (i_fl_rdata),//input [7:0]     
     
-    
     .o_sram_addr_ext(o_sram_addr[19:12]),
+    
+    .o_mirror_mode  (c_mirror_mode),//output[2:0]     
     .o_irq_n        (c_irq_mmc_n)
 );
 
@@ -175,19 +178,12 @@ ram_2k_adpt ram_2k_adpt(
     .i_bus_wn       (c_bus_r_wn),//input           
     .o_ram_rdata    (c_ram_rdata),//output [7:0]
     .o_ram_addr     (c_ram_addr),//output  [10:0]  
-    .o_ram_din    (c_ram_din),//output  [7:0]   
+    .o_ram_din      (c_ram_din),//output  [7:0]   
     .o_ram_r_wn     (c_ram_r_wn),//output     
     .i_ram_q        (c_ram_q)      
 );
     
-ram_2k	ram_internal (
-    .address    ( c_ram_addr ),
-    .data       ( c_ram_din ),
-    .inclock    ( ~i_clk_cpu ),
-    .wren       ( ~c_ram_r_wn ),
-    .q          ( c_ram_q )
-);
-
+    
 ppu_2C02 ppu_2C02(
     .i_cpu_clk      (i_clk_cpu),//input            
     .i_cpu_rstn     (c_rstn_cpu),//input
@@ -209,6 +205,15 @@ ppu_2C02 ppu_2C02(
     .i_spr_rdata    (c_spr_rdata),//    input   [7:0]   
     
     .o_nmi_n        (c_nmi_n),//input
+    .i_mirror_mode  (c_mirror_mode),//input
+    
+    .o_sram_addr     (o_sram_addr[11:0]),//output  [11:0]  
+    .o_sram_wdata    (o_sram_wdata),//output  [15:0]  
+    .i_sram_rdata    (i_sram_rdata),//input   [15:0]  
+    .o_sram_we_n     (o_sram_we_n),//output          
+    .o_sram_oe_n     (o_sram_oe_n),//output          
+    .o_sram_ub_n     (o_sram_ub_n),//output          
+    .o_sram_lb_n     (o_sram_lb_n),//output          
     
     .o_lcd_r        (o_lcd_pixel[23:16]),//output [7:0]    
     .o_lcd_g        (o_lcd_pixel[15:8]),//output [7:0]    
@@ -219,6 +224,7 @@ ppu_2C02 ppu_2C02(
     .i_jp_vec_1p    (i_jp_vec_1p),//input  [9:0]    
     .i_jp_vec_2p    (i_jp_vec_2p) //input  [9:0]    
 );
+
 
 apu_2A03_pseudo apu_2A03_pseudo(
     .i_clk       (i_clk_cpu),//input           
@@ -232,6 +238,15 @@ apu_2A03_pseudo apu_2A03_pseudo(
     .o_dmc_addr  (c_dmc_addr ),//output  [15:0]  
     .i_dmc_smpl  (c_dmc_rdata),//input   [7:0]   
     .o_irq_n     (c_irq_apu_n) //output          
+);
+
+
+ram_2k	ram_internal (
+    .address    ( c_ram_addr ),
+    .data       ( c_ram_din ),
+    .inclock    ( ~i_clk_cpu ),
+    .wren       ( ~c_ram_r_wn ),
+    .q          ( c_ram_q )
 );
 
 endmodule

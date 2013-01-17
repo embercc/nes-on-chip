@@ -16,7 +16,7 @@ module ppu_cfg(
     output          o_vram_we   ,
     output  [7:0]   o_vram_wdata,
     input   [7:0]   i_vram_rdata,
-    
+    output          o_2007_visit,
     
     input           i_spr_ovfl  ,
     input           i_spr_0hit  ,
@@ -222,7 +222,7 @@ assign o_oam_wdata = i_bus_wdata;
 assign o_vram_addr = r_ppuaddr; //the data will be valid or witten after posedge.
 assign o_vram_we = c_is_ppu & (c_ppu_reg==3'h7) & ~i_bus_wn;
 assign o_vram_wdata = i_bus_wdata;
-
+assign o_2007_visit = c_is_ppu & (c_ppu_reg==3'h7);
 
 //read
 assign o_ppu_rdata =    ~c_is_ppu         ? 8'h0 :
