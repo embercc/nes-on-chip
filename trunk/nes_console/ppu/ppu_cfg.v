@@ -17,7 +17,11 @@ module ppu_cfg(
     output  [7:0]   o_vram_wdata,
     input   [7:0]   i_vram_rdata,
     output          o_2007_visit,
-    
+    //ppu cfg
+    output  [5:0]   o_ppuctrl   ,
+    output  [7:0]   o_ppumask   ,
+    output  [7:0]   o_ppuscrollX,
+    output  [7:0]   o_ppuscrollY,
     input           i_spr_ovfl  ,
     input           i_spr_0hit  ,
     input           i_vblank    ,
@@ -28,9 +32,7 @@ wire        c_is_ppu;
 wire [2:0]  c_ppu_reg;
 
 reg [7:0]   r_ppuctrl;
-    
 reg [7:0]   r_ppumask   ;
-
 //reg [7:0]   r_ppustat   ;      //TODO: probably this reg does not exist.
 reg [7:0]   r_oamaddr   ;
 reg [7:0]   r_ppuscrollx;
@@ -42,20 +44,8 @@ reg         r_nmi_n     ;
 reg         r_vblank;
 wire        c_vblank_pos;
 
-wire[1:0]   c_nt_base   ;
 wire        c_vr_incmode;
-wire        c_spr_pt_sel;
-wire        c_bg_pt_sel ;
-wire        c_patt_sz   ;
 wire        c_nmi_ena   ;
-wire        c_gray      ;
-wire        c_bg_clip   ;
-wire        c_spr_clip  ;
-wire        c_bg_ena    ;
-wire        c_spr_ena   ;
-wire        c_high_r    ;
-wire        c_high_g    ;
-wire        c_high_b    ;
 
 reg         r_wcnt;
 wire        c_is_palette;
@@ -64,12 +54,6 @@ reg [4:0]   r_lastwrite;
 assign c_is_ppu = i_bus_addr[13];
 assign c_ppu_reg = i_bus_addr[2:0];
 
-always @ ( posedge i_cpu_clk or negedge i_cpu_rstn) begin
-    if(~i_cpu_rstn) begin
-    end
-    else begin
-    end
-end
 
 //PPUCTRL $2000 Write
 always @ ( posedge i_cpu_clk or negedge i_cpu_rstn) begin
@@ -82,12 +66,10 @@ always @ ( posedge i_cpu_clk or negedge i_cpu_rstn) begin
         end
     end
 end
-assign c_nt_base    = r_ppuctrl[1:0];
-assign c_vr_incmode = r_ppuctrl[2];
-assign c_spr_pt_sel = r_ppuctrl[3];
-assign c_bg_pt_sel  = r_ppuctrl[4];
-assign c_patt_sz    = r_ppuctrl[5];
+
 assign c_nmi_ena    = r_ppuctrl[7];
+assign c_vr_incmode = r_ppuctrl[2];
+
 
 //PPUMASK $2001 Write
 always @ ( posedge i_cpu_clk or negedge i_cpu_rstn) begin
@@ -100,7 +82,6 @@ always @ ( posedge i_cpu_clk or negedge i_cpu_rstn) begin
         end
     end
 end
-assign {c_high_b, c_high_g, c_high_r, c_spr_ena, c_bg_ena, c_spr_clip, c_bg_clip, c_gray} = r_ppumask;
 
 //OAMADDR $2003 Write
 always @ ( posedge i_cpu_clk or negedge i_cpu_rstn) begin
@@ -159,6 +140,12 @@ always @ ( posedge i_cpu_clk or negedge i_cpu_rstn) begin
                 r_ppuaddr[7:0] <= i_bus_wdata;
             else
                 r_ppuaddr[15:8] <= i_bus_wdata;
+        end
+        else if(c_is_ppu & (c_ppu_reg==3'h7)) begin //access $2007 will increase PPUADDR
+            if (c_vr_incmode)
+                r_ppuaddr <= r_ppuaddr + 16'h20;
+            else
+                r_ppuaddr <= r_ppuaddr + 16'h1;
         end
     end
 end
@@ -232,4 +219,9 @@ assign o_ppu_rdata =    ~c_is_ppu         ? 8'h0 :
                         8'h0;
 
 assign o_nmi_n = c_nmi_ena ? r_nmi_n : 1'b1;
+//PPU CFG
+assign o_ppuctrl = r_ppuctrl[5:0];
+assign o_ppumask = r_ppumask[7:0];
+assign o_ppuscrollX = r_ppuscrollx;
+assign o_ppuscrollY = r_ppuscrolly;
 endmodule
