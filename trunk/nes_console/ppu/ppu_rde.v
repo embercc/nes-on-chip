@@ -9,7 +9,6 @@ module ppu_rde(
     input           i_vblank        ,
     output          o_spr_ovfl      ,
     output          o_spr_0hit      ,
-    
     //vram port                     
     output  [11:0]  o_pt_addr       ,
     input   [15:0]  i_pt_rdata      ,
@@ -62,5 +61,20 @@ assign c_scrollX    = i_ppuscrollX[7:3];
 assign c_fineX      = i_ppuscrollX[2:0];
 assign c_scrollY    = i_ppuscrollY[7:3];
 assign c_fineY      = i_ppuscrollY[2:0];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 endmodule

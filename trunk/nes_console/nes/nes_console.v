@@ -240,6 +240,17 @@ apu_2A03_pseudo apu_2A03_pseudo(
     .o_irq_n     (c_irq_apu_n) //output          
 );
 
+joypad_ctrl joypad_ctrl(
+    .i_clk           (i_clk_cpu),//input           
+    .i_rstn          (c_rstn_cpu),//input           
+    .i_jpd_1p        (i_jp_vec_1p),//input [9:0]     
+    .i_jpd_2p        (i_jp_vec_2p),//input [9:0]     
+    .i_bus_addr      (c_bus_addr),//input   [15:0]  
+    .i_bus_wn        (c_bus_r_wn),//input           
+    .i_bus_wdata     (c_bus_wdata),//input   [7:0]   
+    .o_jpd_rdata     (c_jpd_rdata) //output  [7:0]   
+);
+
 
 ram_2k	ram_internal (
     .address    ( c_ram_addr ),
