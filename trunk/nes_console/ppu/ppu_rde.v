@@ -22,6 +22,8 @@ module ppu_rde(
     output  [7:0]   o_vbuf_wdata    
 );
 
+parameter [8:0] SCAN_X_MAX = 9'd339;
+
 wire[1:0]   c_nt_base   ;
 wire        c_spr_pt_sel;
 wire        c_bg_pt_sel ;
@@ -38,12 +40,28 @@ wire[4:0]   c_scrollX   ;
 wire[2:0]   c_fineX     ;
 wire[4:0]   c_scrollY   ;
 wire[2:0]   c_fineY     ;
+reg         r_vblank    ;
+reg         rr_vblank   ;
+//scanline counters.
+reg [8:0] r_scan_x; //0-255 is renderring period, 255- is spr preprocessing period.
+reg [8:0] r_scan_y; //0-239 is renderring period, 240- is idle and vblank period.
 
+reg r_rde_run;
+reg [4:0] r_ntX;
+reg [2:0] r_fineX;
+reg [4:0] r_ntY;
+reg [2:0] r_fineY;
+reg [1:0] r_nt_base;
+reg [9:0] r_attr_ad;
 
+reg [15:0] r_patt_shft_H;
+reg [15:0] r_patt_shft_L;
+reg [15:0] r_patt_buf;
+reg [15:0] r_attr_shft_H;
+reg [15:0] r_attr_shft_L;
 ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////
-
 
 assign c_patt_sz    = i_ppuctrl[5];
 assign c_bg_pt_sel  = i_ppuctrl[4];
@@ -62,19 +80,200 @@ assign c_fineX      = i_ppuscrollX[2:0];
 assign c_scrollY    = i_ppuscrollY[7:3];
 assign c_fineY      = i_ppuscrollY[2:0];
 
+//tamplate
+always @ ( posedge i_clk or negedge i_rstn) begin
+    if(~i_rstn) begin
+    end
+    else begin
+    end
+end
+
+//vblank start
+always @ ( posedge i_clk or negedge i_rstn) begin
+    if(~i_rstn) begin
+        r_vblank <= 1'b0;
+        rr_vblank <= 1'b0;
+    end
+    else begin
+        r_vblank <= i_vblank;
+        rr_vblank <= r_vblank;
+    end
+end
+
+//rde ena
+always @ ( posedge i_clk or negedge i_rstn) begin
+    if(~i_rstn) begin
+        r_rde_run <= 1'b0;
+    end
+    else begin
+        if(~rr_vblank & r_vblank)
+            r_rde_run <= 1'b1;
+        else if(r_scan_y==9'd239 && r_scan_x==SCAN_X_MAX)
+            r_rde_run <= 1'b0;
+    end
+end
 
 
+//scanline counters
+//scanline x
+always @ ( posedge i_clk or negedge i_rstn) begin
+    if(~i_rstn) begin
+        r_scan_x <= 9'h0;
+    end
+    else begin
+        if (~rr_vblank & r_vblank)
+            r_scan_x <= 9'h0;
+        else if (r_rde_run) begin
+            if (r_scan_x==SCAN_X_MAX)
+                r_scan_x <= 9'h0;
+            else
+                r_scan_x <= r_scan_x + 9'h1;
+        end
+    end
+end
+//scanline y
+always @ ( posedge i_clk or negedge i_rstn) begin
+    if(~i_rstn) begin
+        r_scan_y <= 9'h0;
+    end
+    else begin
+        if(~rr_vblank & r_vblank)
+            r_scan_y <= 9'h0F0;
+        else if(r_rde_run) begin
+            if(r_scan_x==SCAN_X_MAX) begin
+                if (r_scan_y==9'd261)
+                    r_scan_y <= 9'h0;
+                else
+                    r_scan_y <= r_scan_y + 9'h1;
+            end
+        end
+    end
+end
 
+/*
+ scanlines 9'h105, 9'h000 - 9'h0EF are renderred scanlines.
+ scan_x 9'h0 - 9'hff are pixel calculation cycles in a scanline.
+*/
 
+/*
 
+                background render
+                
+*/
+//pattern table buffer
+always @ ( posedge i_clk or negedge i_rstn) begin
+    if(~i_rstn) begin
+        r_patt_buf <= 16'h0;
+    end
+    else begin
+        if((~r_scan_y[8] | (r_scan_y[8:0]==9'd261)) & ~r_scan_x[8]) begin
+            if (r_scan_x[2:0]==3'h6) begin
+                r_patt_buf <= i_pt_rdata;
+            end
+        end
+    end
+end
+//pattern table shifter
+always @ ( posedge i_clk or negedge i_rstn) begin
+    if(~i_rstn) begin
+        r_patt_shft_H <= 16'h0;
+        r_patt_shft_L <= 16'h0;
+    end
+    else begin
+        if((~r_scan_y[8] | (r_scan_y[8:0]==9'd261)) & ~r_scan_x[8]) begin
+            if((r_scan_x[2:0]==3'h7)) begin
+                r_patt_shft_H[7:0] <= r_patt_buf[15:8];
+                r_patt_shft_L[7:0] <= r_patt_buf[7:0];
+            end
+            else begin
+                r_patt_shft_H <= {r_patt_shft_H[14:0], 1'b0};
+                r_patt_shft_L <= {r_patt_shft_L[14:0], 1'b0};
+            end
+        end
+    end
+end
+//attr table shifter
+always @ ( posedge i_clk or negedge i_rstn) begin
+    if(~i_rstn) begin
+        r_attr_shft_H <= 16'h0;
+        r_attr_shft_L <= 16'h0;
+    end
+    else begin
+        if((~r_scan_y[8] | (r_scan_y[8:0]==9'd261)) & ~r_scan_x[8]) begin
+            if( (r_scan_x[2:0]==3'h7)) begin
+                r_attr_shft_H[7:0] <= {r_ntY[1], r_ntX[1]}==2'b00 ? {8{i_nt_rdata[1]}}:
+                                      {r_ntY[1], r_ntX[1]}==2'b01 ? {8{i_nt_rdata[3]}}:
+                                      {r_ntY[1], r_ntX[1]}==2'b10 ? {8{i_nt_rdata[5]}}:
+                                      {8{i_nt_rdata[7]}};
+                r_attr_shft_L[7:0] <= {r_ntY[1], r_ntX[1]}==2'b00 ? {8{i_nt_rdata[0]}}:
+                                      {r_ntY[1], r_ntX[1]}==2'b01 ? {8{i_nt_rdata[2]}}:
+                                      {r_ntY[1], r_ntX[1]}==2'b10 ? {8{i_nt_rdata[4]}}:
+                                      {8{i_nt_rdata[6]}};
+            end
+            else begin
+                r_attr_shft_H <= {r_attr_shft_H[14:0], 1'b0};
+                r_attr_shft_L <= {r_attr_shft_L[14:0], 1'b0};
+            end
+        end
+    end
+end
 
+//pipeline ntX and ntY
+always @ ( posedge i_clk or negedge i_rstn) begin
+    if(~i_rstn) begin
+        r_ntX <= 5'h0;
+        r_fineX <= 3'h0;
+        r_ntY <= 5'h0;
+        r_fineY <= 3'h0;
+    end
+    else begin
+        if ((r_scan_y[8:0]==9'd260) & (r_scan_x==SCAN_X_MAX)) begin
+            r_ntX <= c_scrollX + 5'h1;
+            r_fineX <= c_fineX;
+            {r_ntY, r_fineY} <= {c_scrollY, c_fineY} - 8'h1;
+        end
+        else if (~r_scan_x[8]) begin
+            if((r_scan_x[2:0]==3'h4)) begin
+                r_ntX <= r_ntX + 5'h1;
+            end
+            
+            if((r_scan_x[7:0]==8'hF4)) begin
+                r_fineY <= r_fineY + 3'h1;
+                if((r_fineY==3'h7) & (r_ntY==5'd29))
+                    r_ntY <= 5'h0;
+                else
+                    r_ntY <= r_ntY + 5'h1;
+            end
+        end
+    end
+end
 
+//name table base
+always @ ( posedge i_clk or negedge i_rstn) begin
+    if(~i_rstn) begin
+        r_nt_base <= 2'b00;
+    end
+    else begin
+        if ((r_scan_y[8:0]==9'd260) & (r_scan_x==SCAN_X_MAX)) begin
+            r_nt_base<=c_nt_base;
+        end
+        else if(~r_scan_x[8] & r_scan_y<9'd240)begin
+            if((r_scan_x[2:0]==3'h4) & (r_ntX==5'd31)) begin
+                r_nt_base[0] <= ~r_nt_base[0];
+            end
+            
+            if((r_scan_x[7:0]==8'hF4) & (r_fineY==3'h7) & (r_ntY==5'd29)) begin
+                r_nt_base[1] <= ~r_nt_base[1];
+            end
+        end
+    end
+end
 
+//name table access
 
+//attr table access
 
-
-
-
+//pattern table access
 
 
 endmodule
