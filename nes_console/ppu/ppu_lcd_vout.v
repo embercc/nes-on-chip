@@ -10,11 +10,12 @@ module ppu_lcd_vout(
     output reg          o_lcd_vsd   ,
     output              o_vblank    ,
     input       [9:0]   i_jp_vec_1p ,
-    input       [9:0]   i_jp_vec_2p 
+    input       [9:0]   i_jp_vec_2p ,
+    input       [2:0]   i_high_bgr
 );
 
 /*
-lcd out started in second frame. vbuf_addr[16]==1
+lcd out started in odd frame. vbuf_addr[16]==1
 */
 
 
@@ -35,6 +36,7 @@ reg         r_hsd;
 reg         r_vsd;
 
 wire[23:0]   c_hsv2rgb;
+wire[23:0]   c_hsv2rgb_masked;
 
 reg         r_vbuf_page;
 wire        c_game_area;
@@ -183,12 +185,16 @@ assign c_jp_mon_ta_2p       = (r_lcd_xx[9:2]==8'd198) & (r_lcd_yy[8:2]==7'd116);
 /*
 LCD OUTPUT
 */
+assign c_hsv2rgb_masked[7:0]   = i_high_bgr[2] ? 8'hff : c_hsv2rgb[7:0];//blue
+assign c_hsv2rgb_masked[15:8]  = i_high_bgr[1] ? 8'hff : c_hsv2rgb[15:8];//green
+assign c_hsv2rgb_masked[23:16] = i_high_bgr[0] ? 8'hff : c_hsv2rgb[23:16];//red
+
 always @ (posedge i_lcd_clk) begin
     o_lcd_hsd   <= r_hsd;
     o_lcd_vsd   <= r_vsd;
     if(r_hsd & r_vsd) begin
         case(1)
-        c_game_area         :            begin                {o_lcd_r, o_lcd_g, o_lcd_b} <= c_hsv2rgb;            end
+        c_game_area         :            begin                {o_lcd_r, o_lcd_g, o_lcd_b} <= c_hsv2rgb_masked     ;            end
         c_jp_mon_box_1p     :            begin                {o_lcd_r, o_lcd_g, o_lcd_b} <= {8'h00, 8'hff, 8'h7f};            end
         c_jp_mon_box_2p     :            begin                {o_lcd_r, o_lcd_g, o_lcd_b} <= {8'h00, 8'h7f, 8'hff};            end
         c_jp_mon_up_1p      :            begin                {o_lcd_r, o_lcd_g, o_lcd_b} <= {{8{i_jp_vec_1p[9]}}, ~{8{i_jp_vec_1p[9]}}, 8'h00};            end
@@ -220,10 +226,6 @@ assign o_vbuf_addr = {r_vbuf_page, c_vbuf_addr_y, c_vbuf_addr_x};
 game control output
 */
 assign o_vblank = (r_line >= 10'd480);
-
-//assign c_rom_addr_x = c_lcd_xx[7:0];
-//assign c_rom_addr_y = 7'h7f - c_lcd_yy[6:0];
-
 
 
 
