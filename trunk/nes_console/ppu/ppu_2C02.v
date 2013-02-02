@@ -54,6 +54,10 @@ wire[7:0]   c_oam_cfg_wdata ;
 wire[7:0]   c_oam_cfg_rdata ;
 wire[5:0]   c_oam_addr      ;
 wire[31:0]  c_oam_rdata     ;
+wire[2:0]   c_oam2_addr     ;
+wire[31:0]  c_oam2_wdata    ;
+wire        c_oam2_we       ;
+wire[31:0]  c_oam2_rdata    ;
 
 wire[15:0]  c_vram_addr     ;
 wire        c_vram_we       ;
@@ -144,6 +148,12 @@ ppu_rde ppu_rde(
     .i_nt_rdata     (c_nt_rdata ),//input   [7:0]   
     .o_plt_addr     (c_plt_addr ),//output  [4:0]   
     .i_plt_rdata    (c_plt_rdata),//input   [7:0]   
+    .o_oam_addr     (c_oam_addr  ),//output      [5:0]   
+    .i_oam_rdata    (c_oam_rdata ),//input       [31:0]  
+    .o_oam2_addr    (c_oam2_addr ),//output      [2:0]   
+    .o_oam2_wdata   (c_oam2_wdata),//output      [31:0]  
+    .o_oam2_we      (c_oam2_we   ),//output              
+    .i_oam2_rdata   (c_oam2_rdata),//input               
     .o_vbuf_addr    (c_vbuf_waddr),//output  [16:0]  
     .o_vbuf_we      (c_vbuf_we   ),//output          
     .o_vbuf_wdata   (c_vbuf_wdata) //output  [7:0]   
@@ -161,6 +171,7 @@ ppu_vram ppu_vram(
     .o_vram_rdata       (c_vram_rdata), //output      [7:0]   
     .i_2007_visit       (c_2007_visit), //input               
     .i_mirror_mode      (i_mirror_mode), //input       [2:0]   
+    .i_gray             (c_ppumask[0]),//input 
     .i_pt_addr          (c_pt_addr  ), //input       [11:0]  
     .o_pt_rdata         (c_pt_rdata ), //output reg  [15:0]  
     .i_nt_addr          (c_nt_addr  ), //input       [11:0]  
@@ -190,7 +201,8 @@ ppu_lcd_vout ppu_lcd_vout(
     .o_lcd_vsd      (o_lcd_vsd),//output          
     .o_vblank       (c_vblank),//output          
     .i_jp_vec_1p    (i_jp_vec_1p),//input  [9:0]    
-    .i_jp_vec_2p    (i_jp_vec_2p) //input  [9:0]    
+    .i_jp_vec_2p    (i_jp_vec_2p),//input  [9:0]    
+    .i_high_bgr     (c_ppumask[7:5]) //input       [2:0]   
 );
 
 
@@ -205,6 +217,14 @@ dpram_oam_256x8_64x32	ppu_oam (
 	.wren_b     (1'b0),
 	.q_a        (c_oam_cfg_rdata  ),
 	.q_b        (c_oam_rdata  )
+);
+
+ppu_oam2 ppu_second_oam(
+    .i_clk      (i_ppu_clk),
+    .i_addr     (c_oam2_addr),
+    .i_data     (c_oam2_wdata),
+    .i_we       (c_oam2_we),
+    .o_q        (c_oam2_rdata)
 );
 
 

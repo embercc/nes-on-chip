@@ -10,6 +10,7 @@ module ppu_vram(
     output      [7:0]   o_vram_rdata    ,
     input               i_2007_visit    ,
     input       [2:0]   i_mirror_mode   ,
+    input               i_gray          ,
     //ppu port
     input       [11:0]  i_pt_addr       ,
     output reg  [15:0]  o_pt_rdata      ,
@@ -81,6 +82,8 @@ wire        c_cfg_pt_we_n   ;
 wire        c_cfg_pt_oe_n   ;
 wire        c_cfg_pt_ub_n   ;
 wire        c_cfg_pt_lb_n   ;
+
+wire[7:0]   c_plt_rdata     ;
 
 //chr-ram(pt/sram) cfg write port
 assign c_cfg_pt_hit = i_vram_addr[13] == 1'b0;
@@ -252,9 +255,8 @@ assign c_cfg_nt_rdata = c_cfg_nt_sel==2'h0 ? c_nt0_q_a :
                         c_cfg_nt_sel==2'h2 ? c_nt2_q_a :
                         c_nt3_q_a;
 
-
-
-
+//palette ppu port with gray mask
+assign o_plt_rdata = c_plt_rdata & (i_gray ? 8'h30 : 8'hff);
 
 
 dpram_vram_1kx8 name_table_0(
@@ -320,7 +322,7 @@ dpram_pltt_32x8 palette_table(
 	.wren_a     (c_cfg_pltt_wren_a),
 	.wren_b     (1'b0),
 	.q_a        (c_cfg_pltt_q_a),
-	.q_b        (o_plt_rdata)
+	.q_b        (c_plt_rdata)
 );
 
 
