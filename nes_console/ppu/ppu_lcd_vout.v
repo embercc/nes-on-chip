@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 module ppu_lcd_vout(
     input               i_lcd_rstn  ,
     input               i_lcd_clk   ,

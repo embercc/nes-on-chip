@@ -1,3 +1,5 @@
+`timescale 10ns/1ns
+
 module nes_console(
     input           i_rstn_nes      ,
     input           i_clk_cpu       ,

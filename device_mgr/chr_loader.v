@@ -1,3 +1,5 @@
+`timescale 100ns/10ns
+
 module chr_loader(
     input           i_clk       ,//ppu clk
     input           i_rstn      ,

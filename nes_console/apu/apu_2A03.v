@@ -1,3 +1,5 @@
+`timescale 10ns/1ns
+
 module apu_2A03_pseudo(
     input           i_clk       ,
     input           i_rstn      ,
