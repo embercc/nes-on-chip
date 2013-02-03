@@ -1,3 +1,5 @@
+`timescale 10ns/1ns
+
 module ram_2k_adpt(
     input   [15:0]  i_bus_addr  ,
     input   [7:0]   i_bus_wdata ,

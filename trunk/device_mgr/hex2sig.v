@@ -1,3 +1,5 @@
+`timescale 10ns/1ns
+
 module hex2sig(
     input       [3:0] i_hex,
     output reg  [6:0] o_sig

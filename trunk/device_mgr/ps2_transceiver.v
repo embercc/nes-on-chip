@@ -1,3 +1,5 @@
+`timescale 10ns/1ns
+
 module ps2_tranceiver(
     input           i_clk           ,
     input           i_rstn          ,

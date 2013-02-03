@@ -1,3 +1,5 @@
+`timescale 10ns/1ns
+
 module ppu_spr_ppl(
     input           i_clk       ,
     input           i_rstn      ,

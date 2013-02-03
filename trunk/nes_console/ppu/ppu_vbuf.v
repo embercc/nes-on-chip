@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 module ppu_vbuf(
     input           i_ppu_clk   ,
     input           i_lcd_clk   ,
