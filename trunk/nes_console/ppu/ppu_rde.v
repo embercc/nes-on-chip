@@ -1,5 +1,3 @@
-`timescale 10ns/1ns
-
 module ppu_rde(
     input           i_clk           ,
     input           i_rstn          ,
@@ -452,7 +450,7 @@ always @ ( * ) begin
         endcase
     end
     else begin
-        c_sprt_xcnt_we = 8'h00000000;
+        c_sprt_xcnt_we = 8'b00000000;
     end
 end
 

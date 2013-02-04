@@ -1,5 +1,3 @@
-`timescale 1ns/1ps
-
 module tb_nes_player();
 
 //////////// CLOCK //////////
@@ -96,8 +94,19 @@ wire		          		MTL_VSD             ;
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 initial begin
-    wait(dut.c_mgr_initdone);
-    $shm_open("waves.shm");
+    /*
+    $shm_open("waves_start.shm", , , ,1024, );
+    $shm_probe("AS");
+    wait(dut.FL_ADDR==23'h4000FF);
+    $shm_close();
+    $display("waveform of system start closed.");
+    
+    wait(dut.FL_ADDR==23'h4FFF00);
+    $shm_open("waves_run.shm", , , ,1024, );
+    $display("waveform of system run opened.");
+    $shm_probe("AS");
+    */
+    $shm_open("waves.shm", , , ,1024, );
     $shm_probe("AS");
 end
 ////////////////////////////////////////////////////////////////////////////////
@@ -155,8 +164,8 @@ sram_bhv chr_ram(
 );
 
 flash_bhv #(
-    .PRG_INITVEC("prg_init.txt"),
-    .CHR_INITVEC("chr_init.txt")
+    .PRG_INITVEC("/workspace/nesdev/nes_project/roms/S_mario_2.nes.prg.txt"),
+    .CHR_INITVEC("/workspace/nesdev/nes_project/roms/S_mario_2.nes.chr.txt")
 )
 prg_chr_rom(
     .i_addr     (FL_ADDR),//input   [22:0] 

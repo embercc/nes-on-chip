@@ -1,5 +1,3 @@
-`timescale 10ns/1ns
-
 module device_mgr(
     input           i_rstn_sync_cpu ,
     input           i_rstn_sync_ppu ,

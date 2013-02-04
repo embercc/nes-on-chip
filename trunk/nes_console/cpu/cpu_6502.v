@@ -1,5 +1,3 @@
-`timescale 10ns/1ns
-
 module cpu_6502(
     input               i_CLK       ,   //1.79MHz
     input               i_PAUSE     ,   //cpu will pause and release the databus for DMA time. need more thinking. do nothing about it right now.

@@ -1,5 +1,3 @@
-`timescale 1ns/1ps
-
 module hsv2rgb(
     input      [6:0]     i_hsv,
     output reg [23:0]    o_rgb

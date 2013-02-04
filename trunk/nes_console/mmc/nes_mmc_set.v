@@ -1,5 +1,3 @@
-`timescale 10ns/1ns
-
 //no mapper now.
 module nes_mmc_set(
     input           i_clk           ,

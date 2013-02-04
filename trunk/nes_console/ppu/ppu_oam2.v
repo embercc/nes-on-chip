@@ -1,5 +1,3 @@
-`timescale 10ns/1ns
-
 module ppu_oam2(
     input             i_clk   ,
     input   [2:0]     i_addr  ,

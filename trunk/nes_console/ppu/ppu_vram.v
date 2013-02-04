@@ -1,5 +1,3 @@
-`timescale 10ns/1ns
-
 module ppu_vram(
     input               i_cpu_clk       ,
     input               i_cpu_rstn      ,

@@ -1,5 +1,3 @@
-`timescale 100ns/10ns
-
 module chr_loader(
     input           i_clk       ,//ppu clk
     input           i_rstn      ,
@@ -19,7 +17,12 @@ module chr_loader(
     output          o_sram_lb_n 
     
 );
-
+`ifdef NCSIM
+    parameter [20:0] MAX_ROM_ADDR = 20'h01FFF;
+`else
+    parameter [20:0] MAX_ROM_ADDR = 20'hfffff;
+`endif
+    
     reg     r_done;
     
     reg     [19:0] r_fl_addr;
@@ -57,7 +60,7 @@ module chr_loader(
             end
         STATE_LOADING:
             begin
-                if(r_fl_addr==20'hfffff && r_cnt_1==1'b1)
+                if(r_fl_addr==MAX_ROM_ADDR && r_cnt_1==1'b1)
                     c_state_next = STATE_LOADED;
                 else
                     c_state_next = STATE_LOADING;
@@ -128,7 +131,7 @@ module chr_loader(
             r_fl_addr <= 20'h00000;
         end
         else begin
-            if (r_state==STATE_LOADING && r_fl_addr!=20'hfffff) begin
+            if (r_state==STATE_LOADING && r_fl_addr!=MAX_ROM_ADDR) begin
                 r_fl_addr <= r_fl_addr + {19'h0, r_cnt_1};
             end
         end

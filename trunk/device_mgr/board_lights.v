@@ -1,5 +1,3 @@
-`timescale 10ns/1ns
-
 module board_lights(
     input           i_rstn          ,
     input           i_clk           ,

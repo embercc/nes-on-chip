@@ -1,4 +1,3 @@
-`timescale 1ns/1ps
 
 module rstn_sync(
     input   i_clk     ,
