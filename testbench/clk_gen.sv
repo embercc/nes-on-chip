@@ -1,4 +1,4 @@
-`timescale 1ns/1ps
+`timescale 1ns/1ns
 
 module clk_gen#(
     parameter HALFCYCLE = 250ns

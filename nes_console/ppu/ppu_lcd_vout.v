@@ -1,5 +1,3 @@
-`timescale 1ns/1ps
-
 module ppu_lcd_vout(
     input               i_lcd_rstn  ,
     input               i_lcd_clk   ,
@@ -21,11 +19,9 @@ lcd out started in odd frame. vbuf_addr[16]==1
 */
 
 
-wire[7:0]   c_vbuf_q;
 wire[16:0]  c_vbuf_addr;
 wire[7:0]   c_vbuf_addr_x;
 wire[7:0]   c_vbuf_addr_y;
-wire        c_vbuf_bank  ;
 
 wire[9:0]   c_lcd_xx;
 wire[8:0]   c_lcd_yy;

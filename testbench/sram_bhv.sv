@@ -1,5 +1,3 @@
-`timescale 1ns/1ps
-
 module sram_bhv (
     //input                       i_clk   ,
     input   [19 : 0]    i_addr  ,

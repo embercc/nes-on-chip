@@ -1,5 +1,3 @@
-`timescale 10ns/1ns
-
 /*
 Auther:
     ember_cc

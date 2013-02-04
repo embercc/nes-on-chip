@@ -1,5 +1,3 @@
-`timescale 10ns/1ns
-
 module breath_led(
     input       i_clk,
     input       i_rstn,

@@ -1,5 +1,3 @@
-`timescale 1ns/1ps
-
 module flash_bhv #(
     parameter PRG_INITVEC = "prg_init.txt",
     parameter CHR_INITVEC = "chr_init.txt"

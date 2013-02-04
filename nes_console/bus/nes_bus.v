@@ -1,5 +1,3 @@
-`timescale 10ns/1ns
-
 module nes_bus(
     input           i_clk           ,
     input           i_rstn          ,
