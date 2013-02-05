@@ -319,20 +319,33 @@ assign c_ps2_rxdata2 = PS2_DAT2;
 assign PS2_CLK2 = c_ps2_txclk2_e ? c_ps2_txclk2 : 1'bz;   
 assign PS2_DAT2 = c_ps2_txdata2_e ? c_ps2_txdata2 : 1'bz;
 
-
-pll_video	pll_video(
-	.inclk0 ( CLOCK_50 ),
-	.c0 ( clk_33m_p ),
-	.c1 ( clk_33m_out ) //120 degree
-);
-
-pll_sys	pll_sys(
-	.inclk0 ( CLOCK_50 ),
-	.c0 ( c_clk_cpu ),    //1.8MHz
-	.c1 ( c_clk_ppu ),    //5.4MHz
-	.c2 ( c_clk_ppu_sram) //5.4MHz, 60 degree
-);
-
+`ifdef NCSIM
+    pll_video_bhv	pll_video(
+    	.inclk0 ( CLOCK_50 ),
+    	.c0 ( clk_33m_p ),
+    	.c1 ( clk_33m_out ) //120 degree
+    );
+    
+    pll_sys_bhv	pll_sys(
+    	.inclk0 ( CLOCK_50 ),
+    	.c0 ( c_clk_cpu ),    //1.8MHz
+    	.c1 ( c_clk_ppu ),    //5.4MHz
+    	.c2 ( c_clk_ppu_sram) //5.4MHz, 60 degree
+    );
+`else
+    pll_video	pll_video(
+    	.inclk0 ( CLOCK_50 ),
+    	.c0 ( clk_33m_p ),
+    	.c1 ( clk_33m_out ) //120 degree
+    );
+    
+    pll_sys	pll_sys(
+    	.inclk0 ( CLOCK_50 ),
+    	.c0 ( c_clk_cpu ),    //1.8MHz
+    	.c1 ( c_clk_ppu ),    //5.4MHz
+    	.c2 ( c_clk_ppu_sram) //5.4MHz, 60 degree
+    );
+`endif
 
 rstn_sync rstn_sync_cpu(
     .i_clk      (c_clk_cpu),
