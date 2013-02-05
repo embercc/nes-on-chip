@@ -164,8 +164,8 @@ sram_bhv chr_ram(
 );
 
 flash_bhv #(
-    .PRG_INITVEC("/workspace/nesdev/nes_project/roms/S_mario_2.nes.prg.txt"),
-    .CHR_INITVEC("/workspace/nesdev/nes_project/roms/S_mario_2.nes.chr.txt")
+    .PRG_INITVEC("/workspace/nesdev/nes_project/roms/nestest.nes.prg.txt"),
+    .CHR_INITVEC("/workspace/nesdev/nes_project/roms/nestest.nes.chr.txt")
 )
 prg_chr_rom(
     .i_addr     (FL_ADDR),//input   [22:0] 

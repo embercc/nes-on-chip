@@ -213,7 +213,7 @@ assign o_2007_visit = c_is_ppu & (c_ppu_reg==3'h7);
 
 //read
 assign o_ppu_rdata =    ~c_is_ppu         ? 8'h0 :
-                        (c_ppu_reg==3'h2) ? {o_nmi_n, i_spr_0hit, i_spr_ovfl, r_lastwrite} :
+                        (c_ppu_reg==3'h2) ? {~r_nmi_n, i_spr_0hit, i_spr_ovfl, r_lastwrite} :
                         (c_ppu_reg==3'h4) ? i_oam_rdata :
                         (c_ppu_reg==3'h7) ? (c_is_palette ? i_vram_rdata : r_vram_rbuf) :
                         8'h0;
