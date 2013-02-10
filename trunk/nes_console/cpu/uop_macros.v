@@ -56,7 +56,7 @@
 `define OA_IPCH     4'b1111
 
 
-//func_raddr[3:2]
+//func_raddr[4:2]
 `define RA1_NOPNOP  3'b000
 `define RA1_H0LM_A  3'b100
 `define RA1_HMLR_B  3'b101

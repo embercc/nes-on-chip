@@ -224,6 +224,8 @@ always @ ( posedge i_clk or negedge i_rstn) begin
             if((r_scan_x[2:0]==3'h7)) begin
                 r_patt_shft_H[7:0] <= i_pt_rdata[15:8];
                 r_patt_shft_L[7:0] <= i_pt_rdata[7:0];
+                r_patt_shft_H[15:8] <= r_patt_shft_H[14:7];
+                r_patt_shft_L[15:8] <= r_patt_shft_L[14:7];
             end
             else begin
                 r_patt_shft_H <= {r_patt_shft_H[14:0], 1'b0};
@@ -249,6 +251,8 @@ always @ ( posedge i_clk or negedge i_rstn) begin
                                       {r_ntY[1], r_ntX[1]}==2'b01 ? {8{i_nt_rdata[2]}}:
                                       {r_ntY[1], r_ntX[1]}==2'b10 ? {8{i_nt_rdata[4]}}:
                                       {8{i_nt_rdata[6]}};
+                r_attr_shft_H[15:8] <= r_attr_shft_H[14:7];
+                r_attr_shft_L[15:8] <= r_attr_shft_L[14:7];
             end
             else begin
                 r_attr_shft_H <= {r_attr_shft_H[14:0], 1'b0};
@@ -279,10 +283,12 @@ always @ ( posedge i_clk or negedge i_rstn) begin
             
             if((r_scan_x[7:0]==8'hF4)) begin
                 r_fineY <= r_fineY + 3'h1;
-                if((r_fineY==3'h7) & (r_ntY==5'd29))
-                    r_ntY <= 5'h0;
-                else
-                    r_ntY <= r_ntY + 5'h1;
+                if (r_fineY==3'h7) begin
+                    if (r_ntY==5'd29)
+                        r_ntY <= 5'h0;
+                    else
+                        r_ntY <= r_ntY + 5'h1;
+                end
             end
         end
     end

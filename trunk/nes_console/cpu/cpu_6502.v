@@ -372,19 +372,19 @@ module cpu_6502(
                         r_Y;
     always @ ( posedge i_CLK or negedge i_RST_N) begin
         if(~i_RST_N) begin
-            r_ADDR <= 1'b0;
+            r_ADDR <= 16'b0;
         end
         else if (~i_PAUSE) begin
-            if(c_func_raddr[3:2]==2'b00) begin
+            if(c_func_raddr[4:2]==3'b100) begin
                 r_ADDR <= {8'h0, i_DATA + c_radder};
             end
-            else if (c_func_raddr[3:2]==2'b01) begin
+            else if (c_func_raddr[4:2]==3'b101) begin
                 r_ADDR <= {i_DATA, r_ADDR[7:0]} + c_radder;
             end
-            else if (c_func_raddr[3:2]==2'b10) begin
+            else if (c_func_raddr[4:2]==3'b110) begin
                 r_ADDR <= {r_ADDR[15:8], r_ADDR[7:0] + c_radder};
             end
-            else begin
+            else if (c_func_raddr[4:2]==3'b111) begin
                 r_ADDR <= {i_DATA, r_TMP} + c_radder;
             end
         end
