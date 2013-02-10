@@ -1,5 +1,8 @@
 module tb_nes_player();
 
+import "DPI-C" function void set_pixel(input int x, input int y, input int rgb);
+import "DPI-C" function void dump_file();
+
 //////////// CLOCK //////////
 wire 		          		CLOCK_50;
 
@@ -85,6 +88,12 @@ wire 		          		MTL_TOUCH_I2C_SDA   ;
 reg 		          		MTL_TOUCH_INT_n     ;
 wire		          		MTL_VSD             ;
 
+
+reg [10:0]  r_xcnt;
+reg [9:0]   r_line;
+reg         r_hsd;
+reg         r_vsd;
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -139,10 +148,10 @@ initial begin
     KEY = 4'h1;
     $display("reset done.");
     
-    #1s;
-        
-    $display("simulation end,");
-    $finish;
+//    #1s;
+
+//    $display("simulation end,");
+//    $finish;
 end
 
 initial begin
@@ -151,6 +160,172 @@ initial begin
         $display("simulation time: %d", $time);
     end
 end
+
+
+always @(posedge MTL_DCLK) begin
+    r_hsd <= MTL_HSD;
+    r_vsd <= MTL_VSD;
+end
+
+always @(posedge MTL_DCLK or negedge dut.nes_console.c_rstn_lcd) begin
+    if(~dut.nes_console.i_rstn_nes) begin
+        r_xcnt <= 0;
+        r_line <= 0;
+    end
+    else begin
+        if(r_xcnt == 11'd1055) begin
+            r_xcnt <= 11'h0;
+        end
+        else begin
+            r_xcnt <= r_xcnt + 11'h1;
+        end
+        
+        if(r_xcnt == 11'd1055) begin
+            if(r_line==10'd524) begin
+                r_line <= 10'h0;
+            end
+            else begin    
+                r_line <= r_line + 10'h1;
+            end
+        end
+    end
+end
+
+int xxxx;
+int yyyy;
+int rgb;
+always @(posedge MTL_DCLK) begin
+    if(r_xcnt>=50 && r_xcnt<850 && r_line >=23 && r_line<503) begin
+        xxxx = {21'h0, r_xcnt} - 50;
+        yyyy = {22'h0, r_line} - 23;
+        rgb = {8'h0, MTL_R, MTL_G, MTL_B};
+        set_pixel(xxxx, yyyy, rgb);
+    end
+end
+
+always @ (posedge MTL_DCLK) begin
+    if(~MTL_VSD & r_vsd) begin
+        dump_file();
+    end
+end
+
+/*
+joypad sequence
+*/
+initial begin
+    #100_000_000ns;
+    #60_000_000ns;
+    ////branch test
+    //$display("branch test @ %d", $time);
+    //press_down;
+    //release_all;
+    //press_start;
+    //release_all;
+    //
+    ////#100_000_000ns;
+    ////flag tests
+    //$display("flag test @ %d", $time);
+    //press_down;
+    //release_all;
+    //press_start;
+    //release_all;
+    //
+    ////#100_000_000ns;
+    ////immediate test
+    //$display("immediate test @ %d", $time);
+    //press_down;
+    //release_all;
+    //press_start;
+    //release_all;
+    //
+    ////#100_000_000ns;
+    ////implied test
+    //$display("implied test @ %d", $time);
+    //press_down;
+    //release_all;
+    //press_start;
+    //release_all;
+    //
+    //$display("stack test @ %d", $time);
+    //press_down;
+    //release_all;
+    //press_start;
+    //release_all;
+    //
+    //$display("accumulator test @ %d", $time);
+    //press_down;
+    //release_all;
+    //press_start;
+    //release_all;
+    //
+    //$display("(indirect,x) test @ %d", $time);
+    //press_down;
+    //release_all;
+    //press_start;
+    //release_all;
+    //
+    //$display("zeropage test @ %d", $time);
+    //press_down;
+    //release_all;
+    //press_start;
+    //release_all;
+    //
+    //$display("absolute test @ %d", $time);
+    //press_down;
+    //release_all;
+    //press_start;
+    //release_all;
+    //
+    //$display("(indirect),y test @ %d", $time);
+    //press_down;
+    //release_all;
+    //press_start;
+    //release_all;
+    //
+    //$display("absolute,y test @ %d", $time);
+    //press_down;
+    //release_all;
+    //press_start;
+    //release_all;
+    //
+    //$display("zeropage,x test @ %d", $time);
+    //press_down;
+    //release_all;
+    //press_start;
+    //release_all;
+    //
+    //$display("absolute,x test @ %d", $time);
+    //press_down;
+    //release_all;
+    //press_start;
+    //release_all;
+    //#100_000_000ns;
+    
+    //$display("all test @ %d", $time);                         
+    //press_start; 
+    //release_all; 
+    #1_000_000_000ns;
+    
+    
+    
+    $display("simulation end,");
+    $finish;
+end
+
+task press_down();
+    force dut.c_jp_vec_1p[9:0] = 10'b0100_0000_00;
+    #60_000_000ns;
+endtask
+
+task press_start();
+    force dut.c_jp_vec_1p[9:0] = 10'b0000_0000_01;
+    #60_000_000ns;
+endtask
+
+task release_all();
+    force dut.c_jp_vec_1p[9:0] = 10'b0000_0000_00;
+    #40_000_000ns;
+endtask
 
 
 sram_bhv chr_ram(
@@ -163,6 +338,8 @@ sram_bhv chr_ram(
     .i_we_n     (SRAM_WE_N) //input               
 );
 
+
+/*
 flash_bhv #(
     .PRG_INITVEC("/workspace/nesdev/nes_project/roms/nestest.nes.prg.txt"),
     .CHR_INITVEC("/workspace/nesdev/nes_project/roms/nestest.nes.chr.txt")
@@ -171,8 +348,15 @@ prg_chr_rom(
     .i_addr     (FL_ADDR),//input   [22:0] 
     .o_q        (FL_DQ)   //output  [7:0]  
 );
-
-
+*/
+flash_bhv #(
+    .PRG_INITVEC("/workspace/nesdev/nes_project/roms/S_mario_2.nes.prg.txt"),
+    .CHR_INITVEC("/workspace/nesdev/nes_project/roms/S_mario_2.nes.chr.txt")
+)
+prg_chr_rom(
+    .i_addr     (FL_ADDR),//input   [22:0] 
+    .o_q        (FL_DQ)   //output  [7:0]  
+);
 
 nes_player dut(
 	.CLOCK_50               (CLOCK_50),
