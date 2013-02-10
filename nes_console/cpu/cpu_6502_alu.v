@@ -47,8 +47,12 @@ module cpu_6502_alu(
                     o_v = 1'b0;
                 end
     */
-    assign  o_n = o_q[7];
+    
+    wire [8:0]c_ext_sbc;
+    
+    assign  o_n = i_func==F_BIT ? i_right[7] : o_q[7];
     assign  o_z = (o_q==8'h0);
+    assign  c_ext_sbc = i_func==F_SBC ? {1'b0, i_left} - {1'b0, i_right} - {8'h0, ~i_c} : 9'h0;
     
     always @ (*) begin
         case(i_func)
@@ -74,7 +78,7 @@ module cpu_6502_alu(
                 begin
                     o_q = i_left & i_right;
                     o_c = 1'b0;
-                    o_v = o_q[6];
+                    o_v = i_right[6];
                 end
             F_ADC       :   
                 begin
@@ -89,7 +93,9 @@ module cpu_6502_alu(
                 end
             F_SBC       :   
                 begin
-                    {o_c, o_q} = {1'b0, i_left} - {1'b0, i_right} - {8'h0, ~i_c};
+                    //{o_c, o_q} = {1'b0, i_left} - {1'b0, i_right} - {8'h0, ~i_c};
+                    o_q = c_ext_sbc[7:0];
+                    o_c = ~c_ext_sbc[8];
                     o_v = (i_left[7] ^ o_q[7]) & (i_left[7] ^ i_right[7]);
                 end
             F_SB1       :   
@@ -130,7 +136,8 @@ module cpu_6502_alu(
                 end
             F_CMP       :   
                 begin
-                    {o_c, o_q} = {1'b0, i_left} - {1'b0, i_right};
+                    o_q = i_left - i_right;
+                    o_c = i_left >= i_right;
                     o_v = 1'b0;
                 end
             F_Q_F       :   

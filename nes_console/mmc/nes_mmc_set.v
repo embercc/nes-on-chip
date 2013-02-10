@@ -46,6 +46,7 @@ module nes_mmc_set(
     assign  o_fl_addr = c_mmc_hit ? {r_addr_ext, i_bus_addr[14:0]} : 23'h0;
     assign  o_mmc_rdata = c_mmc_hit ? i_fl_rdata[7:0] : 8'h0;
     assign  o_sram_addr_ext = r_sram_addr_ext;
-    assign  o_mirror_mode = 3'h1;
+    //assign  o_mirror_mode = 3'h0; //horizontal
+    assign  o_mirror_mode = 3'h1; //vertical
     assign  o_irq_n = 1'b1;
 endmodule

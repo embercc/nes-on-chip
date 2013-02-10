@@ -51,7 +51,7 @@ reg         r_wcnt;
 wire        c_is_palette;
 reg [4:0]   r_lastwrite;
 
-assign c_is_ppu = i_bus_addr[13];
+assign c_is_ppu = i_bus_addr[15:13]==3'b001;
 assign c_ppu_reg = i_bus_addr[2:0];
 
 
