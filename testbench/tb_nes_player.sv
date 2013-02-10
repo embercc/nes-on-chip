@@ -301,12 +301,14 @@ initial begin
     //release_all;
     //#100_000_000ns;
     
-    //$display("all test @ %d", $time);                         
-    //press_start; 
-    //release_all; 
+    $display("all test @ %d", $time);                         
+    press_start; 
+    release_all; 
+    #400_000_000ns;
+    /*
+    $display("smb1 test @ %d", $time);                          
     #1_000_000_000ns;
-    
-    
+    */
     
     $display("simulation end,");
     $finish;
@@ -339,7 +341,7 @@ sram_bhv chr_ram(
 );
 
 
-/*
+
 flash_bhv #(
     .PRG_INITVEC("/workspace/nesdev/nes_project/roms/nestest.nes.prg.txt"),
     .CHR_INITVEC("/workspace/nesdev/nes_project/roms/nestest.nes.chr.txt")
@@ -348,7 +350,8 @@ prg_chr_rom(
     .i_addr     (FL_ADDR),//input   [22:0] 
     .o_q        (FL_DQ)   //output  [7:0]  
 );
-*/
+
+/*
 flash_bhv #(
     .PRG_INITVEC("/workspace/nesdev/nes_project/roms/S_mario_2.nes.prg.txt"),
     .CHR_INITVEC("/workspace/nesdev/nes_project/roms/S_mario_2.nes.chr.txt")
@@ -357,6 +360,7 @@ prg_chr_rom(
     .i_addr     (FL_ADDR),//input   [22:0] 
     .o_q        (FL_DQ)   //output  [7:0]  
 );
+*/
 
 nes_player dut(
 	.CLOCK_50               (CLOCK_50),
