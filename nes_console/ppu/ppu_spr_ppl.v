@@ -56,7 +56,9 @@ always @ ( posedge i_clk or negedge i_rstn) begin
         r_show_cnt <= 9'h0;
     end
     else begin
-        if((r_xcnt==8'h0) & i_run & ~r_show_cnt[8]) begin
+        if(i_xcnt_wr)
+            r_show_cnt <= 9'h0;
+        else if((r_xcnt==8'h0) & i_run & ~r_show_cnt[8]) begin
             r_show_cnt <= r_show_cnt + 9'h1;
         end
     end

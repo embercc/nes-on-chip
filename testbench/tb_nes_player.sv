@@ -102,10 +102,13 @@ reg         r_vsd;
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+`ifdef DUMP_WAVE
 initial begin
     $shm_open("waves.shm", , , ,1024, );
     $shm_probe("AS");
 end
+`endif
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -131,26 +134,13 @@ clk_gen #( .HALFCYCLE(10ns)) BOARD_CLK(
 );
 
 initial begin
-    KEY = 4'h0;
-    #10000ns;
-    KEY = 4'h1;
-    $display("reset done.");
-    
-//    #1s;
-
-//    $display("simulation end,");
-//    $finish;
+    reset_system;
+    idle_for_20s;
+    $display("simulation end,");
+    $finish;
 end
 
-/*
-initial begin
-    forever begin
-        #100000ns;
-        $display("simulation time: %d", $time);
-    end
-end
-*/
-
+//frame counter
 integer frame_counter;
 initial begin
     frame_counter = 0;
@@ -161,6 +151,9 @@ initial begin
     end
 end
 
+//////////////////DUMP BMP/////////////////////////
+//////////////////DUMP BMP/////////////////////////
+//////////////////DUMP BMP/////////////////////////
 always @(posedge MTL_DCLK) begin
     r_hsd <= MTL_HSD;
     r_vsd <= MTL_VSD;
@@ -207,114 +200,117 @@ always @ (posedge MTL_DCLK) begin
         dump_file();
     end
 end
+///////////////////////////////////////////////////
+///////////////////////////////////////////////////
+///////////////////////////////////////////////////
 
-/*
-joypad sequence
-*/
-initial begin
+
+task idle_for_20s;
+    #20s;
+endtask
+
+task joypad_sequence;
     #100_000_000ns;
     #60_000_000ns;
-    ////branch test
-    //$display("branch test @ %d", $time);
-    //press_down;
-    //release_all;
-    //press_start;
-    //release_all;
-    //
-    ////#100_000_000ns;
-    ////flag tests
-    //$display("flag test @ %d", $time);
-    //press_down;
-    //release_all;
-    //press_start;
-    //release_all;
-    //
-    ////#100_000_000ns;
-    ////immediate test
-    //$display("immediate test @ %d", $time);
-    //press_down;
-    //release_all;
-    //press_start;
-    //release_all;
-    //
-    ////#100_000_000ns;
-    ////implied test
-    //$display("implied test @ %d", $time);
-    //press_down;
-    //release_all;
-    //press_start;
-    //release_all;
-    //
-    //$display("stack test @ %d", $time);
-    //press_down;
-    //release_all;
-    //press_start;
-    //release_all;
-    //
-    //$display("accumulator test @ %d", $time);
-    //press_down;
-    //release_all;
-    //press_start;
-    //release_all;
-    //
-    //$display("(indirect,x) test @ %d", $time);
-    //press_down;
-    //release_all;
-    //press_start;
-    //release_all;
-    //
-    //$display("zeropage test @ %d", $time);
-    //press_down;
-    //release_all;
-    //press_start;
-    //release_all;
-    //
-    //$display("absolute test @ %d", $time);
-    //press_down;
-    //release_all;
-    //press_start;
-    //release_all;
-    //
-    //$display("(indirect),y test @ %d", $time);
-    //press_down;
-    //release_all;
-    //press_start;
-    //release_all;
-    //
-    //$display("absolute,y test @ %d", $time);
-    //press_down;
-    //release_all;
-    //press_start;
-    //release_all;
-    //
-    //$display("zeropage,x test @ %d", $time);
-    //press_down;
-    //release_all;
-    //press_start;
-    //release_all;
-    //
-    //$display("absolute,x test @ %d", $time);
-    //press_down;
-    //release_all;
-    //press_start;
-    //release_all;
+    $display("branch test @ %d", $time);
+    press_down;
+    release_all;
+    press_start;
+    release_all;
+    
     //#100_000_000ns;
+    //flag tests
+    $display("flag test @ %d", $time);
+    press_down;
+    release_all;
+    press_start;
+    release_all;
     
-    //$display("all test @ %d", $time);                         
-    //press_start; 
-    //release_all; 
-    //#400_000_000ns;
+    //#100_000_000ns;
+    //immediate test
+    $display("immediate test @ %d", $time);
+    press_down;
+    release_all;
+    press_start;
+    release_all;
     
-    $display("smb1 test @ %d", $time);                          
-    #2_000_000_000ns;
+    //#100_000_000ns;
+    //implied test
+    $display("implied test @ %d", $time);
+    press_down;
+    release_all;
+    press_start;
+    release_all;
     
+    $display("stack test @ %d", $time);
+    press_down;
+    release_all;
+    press_start;
+    release_all;
     
-    $display("simulation end,");
-    $finish;
-end
+    $display("accumulator test @ %d", $time);
+    press_down;
+    release_all;
+    press_start;
+    release_all;
+    
+    $display("(indirect,x) test @ %d", $time);
+    press_down;
+    release_all;
+    press_start;
+    release_all;
+    
+    $display("zeropage test @ %d", $time);
+    press_down;
+    release_all;
+    press_start;
+    release_all;
+    
+    $display("absolute test @ %d", $time);
+    press_down;
+    release_all;
+    press_start;
+    release_all;
+    
+    $display("(indirect),y test @ %d", $time);
+    press_down;
+    release_all;
+    press_start;
+    release_all;
+    
+    $display("absolute,y test @ %d", $time);
+    press_down;
+    release_all;
+    press_start;
+    release_all;
+    
+    $display("zeropage,x test @ %d", $time);
+    press_down;
+    release_all;
+    press_start;
+    release_all;
+    
+    $display("absolute,x test @ %d", $time);
+    press_down;
+    release_all;
+    press_start;
+    release_all;
+    #100_000_000ns;
+    
+    $display("all test @ %d", $time);                         
+    press_start; 
+    release_all; 
+    #400_000_000ns;
+    #10s;
+endtask
 
 task press_down();
     force dut.c_jp_vec_1p[9:0] = 10'b0100_0000_00;
+    #60_000_000ns;
+endtask
+
+task press_up();
+    force dut.c_jp_vec_1p[9:0] = 10'b1000_0000_00;
     #60_000_000ns;
 endtask
 
@@ -328,6 +324,12 @@ task release_all();
     #40_000_000ns;
 endtask
 
+task reset_system();
+    KEY = 4'h0;
+    #10000ns;
+    KEY = 4'h1;
+    $display("reset done.");
+endtask
 
 sram_bhv chr_ram(
     .i_addr     (SRAM_ADDR),//input   [19 : 0]    
