@@ -83,6 +83,7 @@ wire        c_cfg_pt_oe_n   ;
 wire        c_cfg_pt_ub_n   ;
 wire        c_cfg_pt_lb_n   ;
 
+wire[4:0]   c_plt_addr      ;
 wire[7:0]   c_plt_rdata     ;
 
 //chr-ram(pt/sram) cfg write port
@@ -104,12 +105,13 @@ assign c_cfg_nt_wdata   = c_cfg_nt_hit ? i_vram_wdata : 8'h0;
 
 //palette cfg write port
 assign c_cfg_pltt_hit = i_vram_addr[13:8]==6'h3F;
-assign c_cfg_pltt_addr_a = c_cfg_pltt_hit ? i_vram_addr[4:0] : 5'h0;
+assign c_cfg_pltt_addr_a = c_cfg_pltt_hit & (i_vram_addr[1:0]!=2'b00) ? i_vram_addr[4:0] : 5'h0; //5'h10 is mirrored to 5'h00
 assign c_cfg_pltt_wren_a = c_cfg_pltt_hit ? i_vram_we : 1'b0;
 assign c_cfg_pltt_data_a = c_cfg_pltt_hit ? i_vram_wdata : 8'h0;
 
 //cfg read port
-assign c_cfg_pt_rdata = ~c_cfg_pt_ub_n ? i_sram_rdata[15:8] :
+assign c_cfg_pt_rdata = ~c_cfg_pt_hit ? 8'h0 :
+                        ~c_cfg_pt_ub_n ? i_sram_rdata[15:8] :
                         ~c_cfg_pt_lb_n ? i_sram_rdata[7:0]  :
                         8'h0;
 assign o_vram_rdata =   c_cfg_nt_hit   ? c_cfg_nt_rdata  :
@@ -255,6 +257,7 @@ assign c_cfg_nt_rdata = c_cfg_nt_sel==2'h0 ? c_nt0_q_a :
                         c_cfg_nt_sel==2'h2 ? c_nt2_q_a :
                         c_nt3_q_a;
 
+assign c_plt_addr = i_plt_addr[1:0]==2'b00 ? 5'h00 : i_plt_addr;
 //palette ppu port with gray mask
 assign o_plt_rdata = c_plt_rdata & (i_gray ? 8'h30 : 8'hff);
 
@@ -314,7 +317,7 @@ dpram_vram_1kx8 name_table_3(
 
 dpram_pltt_32x8 palette_table(
 	.address_a  (c_cfg_pltt_addr_a),
-	.address_b  (i_plt_addr),
+	.address_b  (c_plt_addr),
 	.clock_a    (i_cpu_clk),
 	.clock_b    (i_ppu_clk),
 	.data_a     (c_cfg_pltt_data_a),
