@@ -305,7 +305,10 @@ always @ ( posedge i_clk or negedge i_rstn) begin
         end
         else if(~r_scan_x[8] & r_scan_y<9'd240)begin
             if((r_scan_x[2:0]==3'h4) & (r_ntX==5'd31)) begin
-                r_nt_base[0] <= ~r_nt_base[0];
+                if(r_scan_x[7:3]==5'b11110)
+                    r_nt_base[0] <= c_nt_base[0];
+                else
+                    r_nt_base[0] <= ~r_nt_base[0];
             end
             
             if((r_scan_x[7:0]==8'hF4) & (r_fineY==3'h7) & (r_ntY==5'd29)) begin

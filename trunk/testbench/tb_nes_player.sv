@@ -103,18 +103,6 @@ reg         r_vsd;
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 initial begin
-    /*
-    $shm_open("waves_start.shm", , , ,1024, );
-    $shm_probe("AS");
-    wait(dut.FL_ADDR==23'h4000FF);
-    $shm_close();
-    $display("waveform of system start closed.");
-    
-    wait(dut.FL_ADDR==23'h4FFF00);
-    $shm_open("waves_run.shm", , , ,1024, );
-    $display("waveform of system run opened.");
-    $shm_probe("AS");
-    */
     $shm_open("waves.shm", , , ,1024, );
     $shm_probe("AS");
 end
@@ -154,13 +142,24 @@ initial begin
 //    $finish;
 end
 
+/*
 initial begin
     forever begin
         #100000ns;
         $display("simulation time: %d", $time);
     end
 end
+*/
 
+integer frame_counter;
+initial begin
+    frame_counter = 0;
+    forever begin
+        @(posedge dut.nes_console.ppu_2C02.c_vblank);
+        $display("-------- vblank: %d @ %d --------", frame_counter, $time);
+        frame_counter = frame_counter + 1;
+    end
+end
 
 always @(posedge MTL_DCLK) begin
     r_hsd <= MTL_HSD;
@@ -301,14 +300,14 @@ initial begin
     //release_all;
     //#100_000_000ns;
     
-    $display("all test @ %d", $time);                         
-    press_start; 
-    release_all; 
-    #400_000_000ns;
-    /*
+    //$display("all test @ %d", $time);                         
+    //press_start; 
+    //release_all; 
+    //#400_000_000ns;
+    
     $display("smb1 test @ %d", $time);                          
-    #1_000_000_000ns;
-    */
+    #2_000_000_000ns;
+    
     
     $display("simulation end,");
     $finish;
@@ -341,7 +340,7 @@ sram_bhv chr_ram(
 );
 
 
-
+/*
 flash_bhv #(
     .PRG_INITVEC("/workspace/nesdev/nes_project/roms/nestest.nes.prg.txt"),
     .CHR_INITVEC("/workspace/nesdev/nes_project/roms/nestest.nes.chr.txt")
@@ -350,8 +349,8 @@ prg_chr_rom(
     .i_addr     (FL_ADDR),//input   [22:0] 
     .o_q        (FL_DQ)   //output  [7:0]  
 );
+*/
 
-/*
 flash_bhv #(
     .PRG_INITVEC("/workspace/nesdev/nes_project/roms/S_mario_2.nes.prg.txt"),
     .CHR_INITVEC("/workspace/nesdev/nes_project/roms/S_mario_2.nes.chr.txt")
@@ -360,7 +359,7 @@ prg_chr_rom(
     .i_addr     (FL_ADDR),//input   [22:0] 
     .o_q        (FL_DQ)   //output  [7:0]  
 );
-*/
+
 
 nes_player dut(
 	.CLOCK_50               (CLOCK_50),
