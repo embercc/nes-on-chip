@@ -49,7 +49,7 @@ always @ ( * ) begin
                 c_dma_next = DMA_RD_MEM;
         DMA_WR_OAM:
             if(i_spr_gnt) begin
-                if(r_dma_cnt==8'hff)
+                if(r_dma_cnt==8'h00)
                     c_dma_next = DMA_IDLE;
                 else
                     c_dma_next = DMA_RD_MEM;
@@ -76,7 +76,7 @@ always @(posedge i_clk or negedge i_rstn) begin
     end
     else begin
         if(r_dma_state==DMA_IDLE)
-            r_dma_cnt <= 8'hff;
+            r_dma_cnt <= 8'h00;
         else if((r_dma_state==DMA_RD_MEM) & i_spr_gnt)
             r_dma_cnt <= r_dma_cnt + 8'h1;
     end

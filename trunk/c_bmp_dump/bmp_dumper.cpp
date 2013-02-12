@@ -23,9 +23,9 @@ extern"C" void dump_file();
 extern"C" void set_pixel(int x, int y, int rgb);
 
 extern "C" void dump_file(){
-    io_printf("------------begin dump frame %02d --------\n", frame_count);
+    io_printf("------------begin dump frame %04d --------\n", frame_count);
     char file_name[256];
-    sprintf(file_name, "/workspace/nesdev/nes_project/bmps/%02d.bmp", frame_count);
+    sprintf(file_name, "/workspace/nesdev/nes_project/bmps/%04d.bmp", frame_count);
     FILE* bmp_handle;
     bmp_handle = fopen(file_name, "wb");
     fwrite(bmp_header, 1, 0x36, bmp_handle);
@@ -37,7 +37,7 @@ extern "C" void dump_file(){
     
     
     fclose(bmp_handle);
-    io_printf("------------frame %02d.bmp SAVED--------\n", frame_count);
+    io_printf("------------frame %04d.bmp SAVED--------\n", frame_count);
     frame_count++;
 }
 

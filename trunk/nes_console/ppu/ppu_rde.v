@@ -397,7 +397,9 @@ end
 
 assign  o_oam_addr = r_scan_x[8:6] == 3'b001 ? r_scan_x[5:0] : 6'h0;
 assign  c_oam_deltaY = r_scan_y_next - {1'b0, i_oam_rdata[7:0]};
-assign  c_oam_in_range = c_patt_sz ? c_oam_deltaY[8:4] == 5'h0 : c_oam_deltaY[8:3]==6'h0;
+assign  c_oam_in_range = (i_oam_rdata[7:4]==4'hF) | (i_oam_rdata[7:0]==8'h0)? 1'b0:
+                         c_patt_sz ? c_oam_deltaY[8:4] == 5'h0 :
+                         c_oam_deltaY[8:3]==6'h0;
 assign  c_oam_good = c_oam_in_range & ~r_oam2_eaddr[3] & (r_scan_y_next<9'd240);
 
 //spr evaluation period,  valid time  of  c_oam_in_range and c_oam_good 
@@ -406,7 +408,7 @@ always @ ( posedge i_clk or negedge i_rstn) begin
         r_spr_eva_period <= 1'b0;
     end
     else begin
-        r_spr_eva_period <= r_scan_x[8:6]==3'b001;
+        r_spr_eva_period <= (r_scan_x[8:6]==3'b001) & ((r_scan_y<9'd240) | (r_scan_y==9'd261));
     end
 end
 
@@ -431,7 +433,7 @@ always @ ( posedge i_clk or negedge i_rstn) begin
     else begin
         if((r_scan_y[8:0]==9'd260) & (r_scan_x==SCAN_X_MAX))
             r_spr_ovfl <= 1'b0;
-        else if(r_oam2_eaddr[3] & c_oam_in_range & r_spr_eva_period)
+        else if(r_oam2_eaddr[3] & c_oam_in_range & r_spr_eva_period & r_scan_y[8:0]<9'd240)
             r_spr_ovfl <= 1'b1;
     end
 end
