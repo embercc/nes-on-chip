@@ -18,10 +18,10 @@ module ppu_cfg(
     input   [7:0]   i_vram_rdata,
     output          o_2007_visit,
     //ppu cfg
-    output  [5:0]   o_ppuctrl   ,
+    output  [5:0]   o_ppuctrl   ,//LoopyT[11:10]
     output  [7:0]   o_ppumask   ,
-    output  [7:0]   o_ppuscrollX,
-    output  [7:0]   o_ppuscrollY,
+    output  [7:0]   o_ppuscrollX,//LoopyT[4:0] and fineX
+    output  [7:0]   o_ppuscrollY,//LoopyT[9:5] and fineY
     input           i_spr_ovfl  ,
     input           i_spr_0hit  ,
     input           i_vblank    ,
@@ -33,12 +33,16 @@ wire [2:0]  c_ppu_reg;
 
 reg [7:0]   r_ppuctrl;
 reg [7:0]   r_ppumask   ;
-//reg [7:0]   r_ppustat   ;      //TODO: probably this reg does not exist.
+
 reg [7:0]   r_oamaddr   ;
 reg [7:0]   r_ppuscrollx;
 reg [7:0]   r_ppuscrolly;
-reg [15:0]  r_ppuaddr;
+reg [15:0]  r_ppuaddr;      //LoopyV for VRAM Config, for cpu access
 reg [7:0]   r_vram_rbuf;
+
+reg [15:0]  r_loopyT;      //LoopyT
+reg [2:0]   r_fineX;
+reg [2:0]   r_fineY;
 
 reg         r_nmi_n     ;
 reg         r_vblank;
@@ -136,12 +140,15 @@ always @ ( posedge i_cpu_clk or negedge i_cpu_rstn) begin
     end
     else begin
         if(c_is_ppu & (c_ppu_reg==3'h6) & ~i_bus_wn) begin
-            if(r_wcnt)
+            if(r_wcnt) begin
                 r_ppuaddr[7:0] <= i_bus_wdata;
-            else
-                r_ppuaddr[15:8] <= i_bus_wdata;
+                r_ppuaddr[15:8] <= r_loopyT[15:8];
+            end
+            else begin
+                //r_ppuaddr[15:8] <= i_bus_wdata;
+            end
         end
-        else if(c_is_ppu & (c_ppu_reg==3'h7)) begin //access $2007 will increase PPUADDR
+        else if(c_is_ppu & (c_ppu_reg==3'h7)) begin //access $2007 will increase PPUADDR(LoopyV for cpu access)
             if (c_vr_incmode)
                 r_ppuaddr <= r_ppuaddr + 16'h20;
             else
@@ -149,6 +156,55 @@ always @ ( posedge i_cpu_clk or negedge i_cpu_rstn) begin
         end
     end
 end
+
+//LoopyT
+always @( posedge i_cpu_clk or negedge i_cpu_rstn) begin
+    if(~i_cpu_rstn) begin
+        r_loopyT <= 16'h0;
+        r_fineX <= 3'h0;
+        r_fineY <= 3'h0;
+    end
+    else begin
+        if(c_is_ppu & ~i_bus_wn) begin
+            if(c_ppu_reg==3'h0) begin
+                r_loopyT[11:10]<= i_bus_wdata[1:0];
+            end
+            else if (c_ppu_reg==3'h5) begin
+                if(r_wcnt) begin
+                    r_loopyT[9:5] <= i_bus_wdata[7:3];
+                    r_fineY <= i_bus_wdata[2:0];
+                end
+                else begin
+                    r_loopyT[4:0] <= i_bus_wdata[7:3];
+                    r_fineX <= i_bus_wdata[2:0];
+                end
+            end
+            else if (c_ppu_reg==3'h6) begin
+                if(r_wcnt) begin
+                    r_loopyT[7:0] <= i_bus_wdata;
+                end
+                else begin
+                    r_loopyT[15:8] <= {2'b00,i_bus_wdata[5:0]};
+                end
+            end
+        end
+    end
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 assign c_is_palette = r_ppuaddr[13:8]==6'b11_1111;
 
@@ -222,6 +278,9 @@ assign o_nmi_n = c_nmi_ena ? r_nmi_n : 1'b1;
 //PPU CFG
 assign o_ppuctrl = r_ppuctrl[5:0];
 assign o_ppumask = r_ppumask[7:0];
-assign o_ppuscrollX = r_ppuscrollx;
-assign o_ppuscrollY = r_ppuscrolly;
+//assign o_ppuscrollX = r_ppuscrollx;
+//assign o_ppuscrollY = r_ppuscrolly;
+assign  o_ppuscrollX = {r_loopyT[4:0], r_fineX};
+assign  o_ppuscrollY = {r_loopyT[9:5], r_fineY};
+
 endmodule

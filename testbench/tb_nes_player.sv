@@ -331,6 +331,21 @@ task reset_system();
     $display("reset done.");
 endtask
 
+//////////////PPU ACCESS MONITOR////////////////////
+always @ (posedge dut.nes_console.ppu_2C02.ppu_cfg.i_cpu_clk) begin
+    if(dut.nes_console.ppu_2C02.ppu_cfg.c_is_ppu) begin
+        if(dut.nes_console.ppu_2C02.ppu_cfg.i_bus_wn) begin
+            $display("reg_addr: %04x R %02x", dut.nes_console.ppu_2C02.ppu_cfg.i_bus_addr, dut.nes_console.ppu_2C02.ppu_cfg.o_ppu_rdata);
+        end
+        else begin
+            $display("reg_addr: %04x W %02x", dut.nes_console.ppu_2C02.ppu_cfg.i_bus_addr, dut.nes_console.ppu_2C02.ppu_cfg.i_ppu_waddr);
+        end
+    end
+end
+
+
+
+
 sram_bhv chr_ram(
     .i_addr     (SRAM_ADDR),//input   [19 : 0]    
     .i_ce_n     (SRAM_CE_N),//input               
