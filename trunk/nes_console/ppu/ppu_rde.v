@@ -28,7 +28,7 @@ module ppu_rde(
     output  [7:0]   o_vbuf_wdata    
 );
 
-parameter [8:0] SCAN_X_MAX = 9'd271;
+parameter [8:0] SCAN_X_MAX = 9'd287;
 
 wire[1:0]   c_nt_base   ;
 wire        c_spr_pt_sel;
@@ -262,7 +262,7 @@ always @ ( posedge i_clk or negedge i_rstn) begin
     end
 end
 
-//pipeline ntX and ntY
+//pipeline ntX and ntY // that's part of loopyV
 always @ ( posedge i_clk or negedge i_rstn) begin
     if(~i_rstn) begin
         r_ntX <= 5'h0;
@@ -301,7 +301,7 @@ always @ ( posedge i_clk or negedge i_rstn) begin
     end
     else begin
         if ((r_scan_y[8:0]==9'd260) & (r_scan_x==SCAN_X_MAX)) begin
-            r_nt_base<=c_nt_base;
+            r_nt_base <= c_nt_base;
         end
         else if(~r_scan_x[8] & r_scan_y<9'd240)begin
             if((r_scan_x[2:0]==3'h4) & (r_ntX==5'd31)) begin
