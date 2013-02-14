@@ -69,6 +69,7 @@ wire[5:0]   c_ppuctrl       ;
 wire[7:0]   c_ppumask       ;
 wire[7:0]   c_ppuscrollX    ;
 wire[7:0]   c_ppuscrollY    ;
+wire        c_force_rld     ;
 wire        c_spr_ovfl      ;
 wire        c_spr_0hit      ;
 
@@ -126,6 +127,7 @@ ppu_cfg ppu_cfg(
     .o_ppumask      (c_ppumask),//output  [7:0]   
     .o_ppuscrollX   (c_ppuscrollX),//output  [7:0]   
     .o_ppuscrollY   (c_ppuscrollY),//output  [7:0]   
+    .o_force_rld    (c_force_rld),
     .i_spr_ovfl     (c_spr_ovfl),//input
     .i_spr_0hit     (c_spr_0hit),//input
     .i_vblank       (c_vblank),//input
@@ -139,6 +141,7 @@ ppu_rde ppu_rde(
     .i_ppumask      (c_ppumask   ),//input   [7:0]   
     .i_ppuscrollX   (c_ppuscrollX),//input   [7:0]   
     .i_ppuscrollY   (c_ppuscrollY),//input   [7:0]   
+    .i_force_rld     (c_force_rld),
     .i_vblank       (c_vblank),//input
     .o_spr_ovfl     (c_spr_ovfl  ),//output          
     .o_spr_0hit     (c_spr_0hit  ),//output          

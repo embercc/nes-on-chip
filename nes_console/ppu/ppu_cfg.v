@@ -22,6 +22,7 @@ module ppu_cfg(
     output  [7:0]   o_ppumask   ,
     output  [7:0]   o_ppuscrollX,//LoopyT[4:0] and fineX
     output  [7:0]   o_ppuscrollY,//LoopyT[9:5] and fineY
+    output          o_force_rld ,
     input           i_spr_ovfl  ,
     input           i_spr_0hit  ,
     input           i_vblank    ,
@@ -276,11 +277,12 @@ assign o_ppu_rdata =    ~c_is_ppu         ? 8'h0 :
 
 assign o_nmi_n = c_nmi_ena ? r_nmi_n : 1'b1;
 //PPU CFG
-assign o_ppuctrl = r_ppuctrl[5:0];
+assign o_ppuctrl = {r_ppuctrl[5:2], r_loopyT[11:10]};
 assign o_ppumask = r_ppumask[7:0];
 //assign o_ppuscrollX = r_ppuscrollx;
 //assign o_ppuscrollY = r_ppuscrolly;
 assign  o_ppuscrollX = {r_loopyT[4:0], r_fineX};
 assign  o_ppuscrollY = {r_loopyT[9:5], r_fineY};
+assign  o_force_rld = c_is_ppu & (c_ppu_reg==3'h6) & ~i_bus_wn & r_wcnt;
 
 endmodule
