@@ -136,7 +136,9 @@ clk_gen #( .HALFCYCLE(10ns)) BOARD_CLK(
 initial begin
     reset_system;
     idle_for_20s;
-    //joypad_sequence;
+    press_start();
+    release_all();
+    joypad_sequence;
     $display("simulation end,");
     $finish;
 end
@@ -275,7 +277,7 @@ always @ (posedge dut.nes_console.ppu_2C02.ppu_cfg.i_cpu_clk) begin
         end
         else begin
             $display(
-                "| reg_addr: %04x R %02x | PC= %04x | @%d",
+                "| reg_addr: %04x W %02x | PC= %04x | @%d",
                 dut.nes_console.ppu_2C02.ppu_cfg.i_bus_addr,
                 dut.nes_console.ppu_2C02.ppu_cfg.i_bus_wdata,
                 dut.nes_console.o_cpu_pc,
