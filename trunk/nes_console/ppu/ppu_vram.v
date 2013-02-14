@@ -105,7 +105,10 @@ assign c_cfg_nt_wdata   = c_cfg_nt_hit ? i_vram_wdata : 8'h0;
 
 //palette cfg write port
 assign c_cfg_pltt_hit = i_vram_addr[13:8]==6'h3F;
-assign c_cfg_pltt_addr_a = c_cfg_pltt_hit & (i_vram_addr[1:0]!=2'b00) ? i_vram_addr[4:0] : 5'h0; //5'h10 is mirrored to 5'h00
+//assign c_cfg_pltt_addr_a = c_cfg_pltt_hit & (i_vram_addr[1:0]!=2'b00) ? i_vram_addr[4:0] : 5'h0; //5'h10 is mirrored to 5'h00
+assign c_cfg_pltt_addr_a = ~c_cfg_pltt_hit ? 5'h0 :
+                            (i_vram_addr[1:0]==2'b00) ? {1'b0, i_vram_addr[3:0]} :   //5'h10/14/18/1C is mirrored to 5'h00/04/08/0C when configure
+                            i_vram_addr[4:0];
 assign c_cfg_pltt_wren_a = c_cfg_pltt_hit ? i_vram_we : 1'b0;
 assign c_cfg_pltt_data_a = c_cfg_pltt_hit ? i_vram_wdata : 8'h0;
 
@@ -257,7 +260,7 @@ assign c_cfg_nt_rdata = c_cfg_nt_sel==2'h0 ? c_nt0_q_a :
                         c_cfg_nt_sel==2'h2 ? c_nt2_q_a :
                         c_nt3_q_a;
 
-assign c_plt_addr = i_plt_addr[1:0]==2'b00 ? 5'h00 : i_plt_addr;
+assign c_plt_addr = i_plt_addr[1:0]==2'b00 ? 5'h00 : i_plt_addr;    //5'h?0/?4/?8/?C all mirrored to 5'h00 when ppu read.
 //palette ppu port with gray mask
 assign o_plt_rdata = c_plt_rdata & (i_gray ? 8'h30 : 8'hff);
 
