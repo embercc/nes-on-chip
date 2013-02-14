@@ -6,6 +6,7 @@ module ppu_rde(
     input   [7:0]   i_ppumask       ,
     input   [7:0]   i_ppuscrollX    ,
     input   [7:0]   i_ppuscrollY    ,
+    input           i_force_rld     ,
     input           i_vblank        ,
     output          o_spr_ovfl      ,
     output          o_spr_0hit      ,
@@ -28,7 +29,7 @@ module ppu_rde(
     output  [7:0]   o_vbuf_wdata    
 );
 
-parameter [8:0] SCAN_X_MAX = 9'd287;
+parameter [8:0] SCAN_X_MAX = 9'd335;
 
 wire[1:0]   c_nt_base   ;
 wire        c_spr_pt_sel;
@@ -83,7 +84,7 @@ wire      c_sprt_run;
 reg [7:0] c_sprt_xcnt_we;
 reg [7:0] r_sprt_xcnt_we;
 reg [7:0] r_sprt_pt_we;
-
+wire      c_spr_0hit;
 wire        c_sprt_0priority    ;
 wire[3:0]   c_sprt_0pattern     ;
 wire        c_sprt_0show        ;
@@ -108,6 +109,10 @@ wire        c_sprt_6show        ;
 wire        c_sprt_7priority    ;
 wire[3:0]   c_sprt_7pattern     ;
 wire        c_sprt_7show        ;
+wire[15:0]  c_sprt_pt_in       ;
+reg [31:0]  r_oam2_rdata         ;
+
+
 
 wire [8:0]  c_oam2_deltaY;
 wire [3:0]  c_sprt_pattern;
@@ -212,7 +217,7 @@ end
                 background render
                 
 ********************************************************/
-assign c_pixel_calc = (r_scan_y<9'd240 | (r_scan_y[8:0]==9'd261)) & ~r_scan_x[8] ;
+assign c_pixel_calc = (r_scan_y<9'd240 | (r_scan_y[8:0]==9'd261)) & (~r_scan_x[8] | (r_scan_x[8:4]==5'b10001)) ;
 //PatternTable shifter
 always @ ( posedge i_clk or negedge i_rstn) begin
     if(~i_rstn) begin
@@ -262,15 +267,17 @@ always @ ( posedge i_clk or negedge i_rstn) begin
     end
 end
 
-//pipeline ntX and ntY // that's part of loopyV
+//pipeline ntX and ntY and nt_base// that's part of loopyV
 always @ ( posedge i_clk or negedge i_rstn) begin
     if(~i_rstn) begin
         r_ntX <= 5'h0;
         r_fineX <= 3'h0;
         r_ntY <= 5'h0;
         r_fineY <= 3'h0;
+        r_nt_base <= 2'b00;
     end
     else begin
+        /*
         if ((r_scan_y[8:0]==9'd260) & (r_scan_x==SCAN_X_MAX)) begin
             r_ntX <= c_scrollX + 5'h1;
             r_fineX <= c_fineX;
@@ -281,7 +288,7 @@ always @ ( posedge i_clk or negedge i_rstn) begin
                 r_ntX <= r_ntX + 5'h1;
             end
             
-            if((r_scan_x[7:0]==8'hF4)) begin
+            if((r_scan_x[8:0]==8'hF4)) begin
                 r_fineY <= r_fineY + 3'h1;
                 if (r_fineY==3'h7) begin
                     if (r_ntY==5'd29)
@@ -291,10 +298,42 @@ always @ ( posedge i_clk or negedge i_rstn) begin
                 end
             end
         end
+        */
+        if((r_scan_y[8:0]==9'd261 && r_scan_x[8:0]==9'h10F) | i_force_rld) begin
+            {r_ntY, r_fineY} <= {c_scrollY, c_fineY};
+            r_nt_base[1] <= c_nt_base[1];
+        end
+        else if(r_scan_x[8:0]==9'h100) begin
+            r_fineY <= r_fineY + 3'h1;
+            if (r_fineY==3'h7) begin
+                if (r_ntY==5'd29) begin
+                    r_ntY <= 5'h0;
+                    r_nt_base[1] <= ~r_nt_base[1];
+                end
+                else begin
+                    r_ntY <= r_ntY + 5'h1;
+                end
+            end
+        end
+        
+        if((r_scan_x[8:0]==9'h101) | i_force_rld) begin
+            r_ntX <= c_scrollX;
+            r_fineX <= c_fineX;
+            r_nt_base[0] <= c_nt_base[0];
+        end
+        else if(~r_scan_x[8] | (r_scan_x[8:4]==5'b10001)) begin
+            if(r_scan_x[2:0]==3'h7) begin
+                r_ntX <= r_ntX + 5'h1;
+                if(r_ntX==5'd31) begin
+                    r_nt_base[0] <= ~r_nt_base[0];
+                end
+            end
+        end
     end
 end
 
 //NameTable base
+/*
 always @ ( posedge i_clk or negedge i_rstn) begin
     if(~i_rstn) begin
         r_nt_base <= 2'b00;
@@ -317,6 +356,7 @@ always @ ( posedge i_clk or negedge i_rstn) begin
         end
     end
 end
+*/
 
 //AttrTable address, ready after step5
 always @ ( posedge i_clk or negedge i_rstn) begin
@@ -408,7 +448,7 @@ always @ ( posedge i_clk or negedge i_rstn) begin
         r_spr_eva_period <= 1'b0;
     end
     else begin
-        r_spr_eva_period <= (r_scan_x[8:6]==3'b001) & ((r_scan_y<9'd240) | (r_scan_y==9'd261));
+        r_spr_eva_period <= (r_scan_x[8:6]==3'b001) & ((r_scan_y<9'd240));
     end
 end
 
@@ -483,29 +523,34 @@ always @ ( * ) begin
 end
 
 always @(posedge i_clk) begin
+    r_oam2_rdata <= i_oam2_rdata;
+end
+
+always @(posedge i_clk) begin
     r_sprt_xcnt_we <= c_sprt_xcnt_we;
     r_sprt_pt_we <= r_sprt_xcnt_we;
 end
 
+assign c_sprt_pt_in = r_oam2_rdata[31:0]==32'hffffffff ? 16'h0 : i_pt_rdata;
 /////////////////////////////sprites pixel result/////////////////////////////////
-assign c_sprt_pattern = c_sprt_0show & (c_sprt_0pattern!=0) ? c_sprt_0pattern :
-                        c_sprt_1show & (c_sprt_1pattern!=0) ? c_sprt_1pattern :
-                        c_sprt_2show & (c_sprt_2pattern!=0) ? c_sprt_2pattern :
-                        c_sprt_3show & (c_sprt_3pattern!=0) ? c_sprt_3pattern :
-                        c_sprt_4show & (c_sprt_4pattern!=0) ? c_sprt_4pattern :
-                        c_sprt_5show & (c_sprt_5pattern!=0) ? c_sprt_5pattern :
-                        c_sprt_6show & (c_sprt_6pattern!=0) ? c_sprt_6pattern :
-                        c_sprt_7show & (c_sprt_7pattern!=0) ? c_sprt_7pattern :
+assign c_sprt_pattern = c_sprt_0show & (c_sprt_0pattern[1:0]!=2'h0) ? c_sprt_0pattern :
+                        c_sprt_1show & (c_sprt_1pattern[1:0]!=2'h0) ? c_sprt_1pattern :
+                        c_sprt_2show & (c_sprt_2pattern[1:0]!=2'h0) ? c_sprt_2pattern :
+                        c_sprt_3show & (c_sprt_3pattern[1:0]!=2'h0) ? c_sprt_3pattern :
+                        c_sprt_4show & (c_sprt_4pattern[1:0]!=2'h0) ? c_sprt_4pattern :
+                        c_sprt_5show & (c_sprt_5pattern[1:0]!=2'h0) ? c_sprt_5pattern :
+                        c_sprt_6show & (c_sprt_6pattern[1:0]!=2'h0) ? c_sprt_6pattern :
+                        c_sprt_7show & (c_sprt_7pattern[1:0]!=2'h0) ? c_sprt_7pattern :
                         4'h0;
 
-assign c_sprt_priority= c_sprt_0show & (c_sprt_0pattern!=0) ? c_sprt_0priority :
-                        c_sprt_1show & (c_sprt_1pattern!=0) ? c_sprt_1priority :
-                        c_sprt_2show & (c_sprt_2pattern!=0) ? c_sprt_2priority :
-                        c_sprt_3show & (c_sprt_3pattern!=0) ? c_sprt_3priority :
-                        c_sprt_4show & (c_sprt_4pattern!=0) ? c_sprt_4priority :
-                        c_sprt_5show & (c_sprt_5pattern!=0) ? c_sprt_5priority :
-                        c_sprt_6show & (c_sprt_6pattern!=0) ? c_sprt_6priority :
-                        c_sprt_7show & (c_sprt_7pattern!=0) ? c_sprt_7priority :
+assign c_sprt_priority= c_sprt_0show & (c_sprt_0pattern[1:0]!=2'h0) ? c_sprt_0priority :
+                        c_sprt_1show & (c_sprt_1pattern[1:0]!=2'h0) ? c_sprt_1priority :
+                        c_sprt_2show & (c_sprt_2pattern[1:0]!=2'h0) ? c_sprt_2priority :
+                        c_sprt_3show & (c_sprt_3pattern[1:0]!=2'h0) ? c_sprt_3priority :
+                        c_sprt_4show & (c_sprt_4pattern[1:0]!=2'h0) ? c_sprt_4priority :
+                        c_sprt_5show & (c_sprt_5pattern[1:0]!=2'h0) ? c_sprt_5priority :
+                        c_sprt_6show & (c_sprt_6pattern[1:0]!=2'h0) ? c_sprt_6priority :
+                        c_sprt_7show & (c_sprt_7pattern[1:0]!=2'h0) ? c_sprt_7priority :
                         1'b1;
                         
 assign c_sprt_pattclip = c_spr_clip ? c_sprt_pattern :
@@ -516,7 +561,7 @@ assign c_sprt_prioclip = c_spr_clip ? c_sprt_priority :
                          r_scan_x<8 ? 1'b1 :
                          c_sprt_priority;
                          
-//////////////////////////////////////////////////////////////////////////////////                        
+//////////////////////////////////////////////////////////////////////////////////
 
 /*******************************************************
 
@@ -524,6 +569,8 @@ assign c_sprt_prioclip = c_spr_clip ? c_sprt_priority :
                 
 ********************************************************/
 //sprite 0hit flag
+assign c_spr_0hit = c_sprt_0show & (c_sprt_0pattern[1:0]!=2'h0) & (c_bg_pixel[1:0]!=2'h0) & ~r_scan_x[8] & (r_scan_y<9'd240) ;
+
 always @ ( posedge i_clk or negedge i_rstn) begin
     if(~i_rstn) begin
         r_spr_0hit <= 1'b0;
@@ -531,7 +578,7 @@ always @ ( posedge i_clk or negedge i_rstn) begin
     else begin
         if((r_scan_y[8:0]==9'd260) & (r_scan_x==SCAN_X_MAX))
             r_spr_0hit <= 1'b0;
-        else if(c_sprt_0show & (c_sprt_0pattern!=0) & (c_bg_pixel!=0) & ~r_scan_x[8] & (r_scan_y<9'd240))
+        else if(c_spr_0hit)
             r_spr_0hit <= 1'b1;
     end
 end
@@ -593,7 +640,7 @@ ppu_spr_ppl spr_ppl_0(
     .i_xcnt_wr      (r_sprt_xcnt_we[0]),//input           
     .i_attr         (i_oam2_rdata[23:16]),//input [7:0]     
     .i_attr_we      (r_sprt_xcnt_we[0]),//input           
-    .i_patt         (i_pt_rdata),//input [15:0]    
+    .i_patt         (c_sprt_pt_in),//input [15:0]    
     .i_patt_we      (r_sprt_pt_we[0]),//input           
     .i_run          (c_sprt_run),//input           
     .o_priority     (c_sprt_0priority),//output          
@@ -608,7 +655,7 @@ ppu_spr_ppl spr_ppl_1(
     .i_xcnt_wr      (r_sprt_xcnt_we[1]),//input           
     .i_attr         (i_oam2_rdata[23:16]),//input [7:0]     
     .i_attr_we      (r_sprt_xcnt_we[1]),//input           
-    .i_patt         (i_pt_rdata),//input [15:0]    
+    .i_patt         (c_sprt_pt_in),//input [15:0]    
     .i_patt_we      (r_sprt_pt_we[1]),//input           
     .i_run          (c_sprt_run),//input           
     .o_priority     (c_sprt_1priority),//output          
@@ -623,7 +670,7 @@ ppu_spr_ppl spr_ppl_2(
     .i_xcnt_wr      (r_sprt_xcnt_we[2]),//input           
     .i_attr         (i_oam2_rdata[23:16]),//input [7:0]     
     .i_attr_we      (r_sprt_xcnt_we[2]),//input           
-    .i_patt         (i_pt_rdata),//input [15:0]    
+    .i_patt         (c_sprt_pt_in),//input [15:0]    
     .i_patt_we      (r_sprt_pt_we[2]),//input           
     .i_run          (c_sprt_run),//input           
     .o_priority     (c_sprt_2priority),//output          
@@ -638,7 +685,7 @@ ppu_spr_ppl spr_ppl_3(
     .i_xcnt_wr      (r_sprt_xcnt_we[3]),//input           
     .i_attr         (i_oam2_rdata[23:16]),//input [7:0]     
     .i_attr_we      (r_sprt_xcnt_we[3]),//input           
-    .i_patt         (i_pt_rdata),//input [15:0]    
+    .i_patt         (c_sprt_pt_in),//input [15:0]    
     .i_patt_we      (r_sprt_pt_we[3]),//input           
     .i_run          (c_sprt_run),//input           
     .o_priority     (c_sprt_3priority),//output          
@@ -653,7 +700,7 @@ ppu_spr_ppl spr_ppl_4(
     .i_xcnt_wr      (r_sprt_xcnt_we[4]),//input           
     .i_attr         (i_oam2_rdata[23:16]),//input [7:0]     
     .i_attr_we      (r_sprt_xcnt_we[4]),//input           
-    .i_patt         (i_pt_rdata),//input [15:0]    
+    .i_patt         (c_sprt_pt_in),//input [15:0]    
     .i_patt_we      (r_sprt_pt_we[4]),//input           
     .i_run          (c_sprt_run),//input           
     .o_priority     (c_sprt_4priority),//output          
@@ -668,7 +715,7 @@ ppu_spr_ppl spr_ppl_5(
     .i_xcnt_wr      (r_sprt_xcnt_we[5]),//input           
     .i_attr         (i_oam2_rdata[23:16]),//input [7:0]     
     .i_attr_we      (r_sprt_xcnt_we[5]),//input           
-    .i_patt         (i_pt_rdata),//input [15:0]    
+    .i_patt         (c_sprt_pt_in),//input [15:0]    
     .i_patt_we      (r_sprt_pt_we[5]),//input           
     .i_run          (c_sprt_run),//input           
     .o_priority     (c_sprt_5priority),//output          
@@ -683,7 +730,7 @@ ppu_spr_ppl spr_ppl_6(
     .i_xcnt_wr      (r_sprt_xcnt_we[6]),//input           
     .i_attr         (i_oam2_rdata[23:16]),//input [7:0]     
     .i_attr_we      (r_sprt_xcnt_we[6]),//input           
-    .i_patt         (i_pt_rdata),//input [15:0]    
+    .i_patt         (c_sprt_pt_in),//input [15:0]    
     .i_patt_we      (r_sprt_pt_we[6]),//input           
     .i_run          (c_sprt_run),//input           
     .o_priority     (c_sprt_6priority),//output          
@@ -698,7 +745,7 @@ ppu_spr_ppl spr_ppl_7(
     .i_xcnt_wr      (r_sprt_xcnt_we[7]),//input           
     .i_attr         (i_oam2_rdata[23:16]),//input [7:0]     
     .i_attr_we      (r_sprt_xcnt_we[7]),//input           
-    .i_patt         (i_pt_rdata),//input [15:0]    
+    .i_patt         (c_sprt_pt_in),//input [15:0]    
     .i_patt_we      (r_sprt_pt_we[7]),//input           
     .i_run          (c_sprt_run),//input           
     .o_priority     (c_sprt_7priority),//output          

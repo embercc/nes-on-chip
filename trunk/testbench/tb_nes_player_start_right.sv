@@ -1,4 +1,4 @@
-module tb_nes_player();
+module tb_nes_player_start_right();
 
 import "DPI-C" function void set_pixel(input int x, input int y, input int rgb);
 import "DPI-C" function void dump_file();
@@ -135,8 +135,7 @@ clk_gen #( .HALFCYCLE(10ns)) BOARD_CLK(
 
 initial begin
     reset_system;
-    idle_for_20s;
-    //joypad_sequence;
+    joypad_sequence;
     $display("simulation end,");
     $finish;
 end
