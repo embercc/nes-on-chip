@@ -569,7 +569,26 @@ assign c_sprt_prioclip = c_spr_clip ? c_sprt_priority :
                 
 ********************************************************/
 //sprite 0hit flag
-assign c_spr_0hit = c_sprt_0show & (c_sprt_0pattern[1:0]!=2'h0) & (c_bg_pixel[1:0]!=2'h0) & ~r_scan_x[8] & (r_scan_y<9'd240) ;
+/*
+For sprite 0 hit to happen at a particular pixel (x, y), the following must be true:
+The background must be enabled.
+Sprites must be enabled.
+The pixel must be in range of sprite 0. This allows the CPU to run ahead from the top
+ of the picture to the top of sprite 0 and from the bottom of sprite 0 to the bottom of the picture.
+The pixel in the background must be opaque.
+The pixel in sprite 0, as flipped, must be opaque.
+x must be less than or equal to 254 (no sprite 0 hit on last pixel).
+If background or sprite clipping is enabled, x must be greater than or equal to 8.
+*/
+assign c_spr_0hit = c_bg_ena &
+                    c_spr_ena &
+                    c_sprt_0show &
+                    (c_sprt_0pattern[1:0]!=2'h0) &
+                    (c_bg_pixel[1:0]!=2'h0) &
+                    (r_scan_x<9'd255) &
+                    (r_scan_y<9'd240) &
+                    (~c_spr_clip | (r_scan_x>=9'd8))
+                    ;
 
 always @ ( posedge i_clk or negedge i_rstn) begin
     if(~i_rstn) begin
