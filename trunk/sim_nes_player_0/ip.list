@@ -1,0 +1,7 @@
+/workspace/nesdev/nes_project/nes_player/ip/dpram_oam_256x8_64x32.v
+/workspace/nesdev/nes_project/nes_player/ip/dpram_pltt_32x8.v
+/workspace/nesdev/nes_project/nes_player/ip/dpram_vbuf_64kx8.v
+/workspace/nesdev/nes_project/nes_player/ip/dpram_vram_1kx8.v
+/workspace/nesdev/nes_project/nes_player/ip/pll_sys.v
+/workspace/nesdev/nes_project/nes_player/ip/pll_video.v
+/workspace/nesdev/nes_project/nes_player/ip/ram_2k.v

@@ -1,0 +1,4 @@
+-access +rwc
+-timescale 1ns/1ns
+#-override_timescale tb_nes_player
+
