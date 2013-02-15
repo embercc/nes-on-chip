@@ -36,8 +36,8 @@ reg [7:0]   r_ppuctrl;
 reg [7:0]   r_ppumask   ;
 
 reg [7:0]   r_oamaddr   ;
-reg [7:0]   r_ppuscrollx;
-reg [7:0]   r_ppuscrolly;
+//reg [7:0]   r_ppuscrollx;
+//reg [7:0]   r_ppuscrolly;
 reg [15:0]  r_ppuaddr;      //LoopyV for VRAM Config, for cpu access
 reg [7:0]   r_vram_rbuf;
 
@@ -119,20 +119,20 @@ always @ ( posedge i_cpu_clk or negedge i_cpu_rstn) begin
 end
 
 //PPUSCROLL $2005
-always @ ( posedge i_cpu_clk or negedge i_cpu_rstn) begin
-    if(~i_cpu_rstn) begin
-        r_ppuscrollx <= 8'h0;
-        r_ppuscrolly <= 8'h0;
-    end
-    else begin
-        if(c_is_ppu & (c_ppu_reg==3'h5) & ~i_bus_wn) begin
-            if(r_wcnt)
-                r_ppuscrolly <= i_bus_wdata;
-            else
-                r_ppuscrollx <= i_bus_wdata;
-        end
-    end
-end
+//always @ ( posedge i_cpu_clk or negedge i_cpu_rstn) begin
+//    if(~i_cpu_rstn) begin
+//        r_ppuscrollx <= 8'h0;
+//        r_ppuscrolly <= 8'h0;
+//    end
+//    else begin
+//        if(c_is_ppu & (c_ppu_reg==3'h5) & ~i_bus_wn) begin
+//            if(r_wcnt)
+//                r_ppuscrolly <= i_bus_wdata;
+//            else
+//                r_ppuscrollx <= i_bus_wdata;
+//        end
+//    end
+//end
 
 //PPUADDR $2006
 always @ ( posedge i_cpu_clk or negedge i_cpu_rstn) begin
