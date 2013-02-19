@@ -385,6 +385,8 @@ nes_console nes_console(
     .i_jp_vec_2p     (c_jp_vec_2p)
 );
 
+//assign c_nes_sram_we_n = 1'b1;
+
 board_lights board_lights(
     .i_rstn          (c_nes_rstn),//input           
     .i_clk           (c_clk_cpu),//input           

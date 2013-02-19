@@ -136,9 +136,11 @@ clk_gen #( .HALFCYCLE(10ns)) BOARD_CLK(
 initial begin
     reset_system;
     idle_for_20s;
-    press_start();
-    release_all();
-    joypad_sequence;
+    idle_for_20s;
+    idle_for_20s;
+    //press_start();
+    //release_all();
+    //joypad_sequence;
     $display("simulation end,");
     $finish;
 end

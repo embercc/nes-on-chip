@@ -72,6 +72,7 @@ wire[7:0]   c_ppuscrollY    ;
 wire        c_force_rld     ;
 wire        c_spr_ovfl      ;
 wire        c_spr_0hit      ;
+wire        c_rde_run       ;
 
 wire[11:0]  c_pt_addr       ;
 wire[15:0]  c_pt_rdata      ;
@@ -130,6 +131,7 @@ ppu_cfg ppu_cfg(
     .o_force_rld    (c_force_rld),
     .i_spr_ovfl     (c_spr_ovfl),//input
     .i_spr_0hit     (c_spr_0hit),//input
+    .i_rde_run      (c_rde_run),
     .i_vblank       (c_vblank),//input
     .o_nmi_n        (o_nmi_n) //output
 );
@@ -144,7 +146,8 @@ ppu_rde ppu_rde(
     .i_force_rld     (c_force_rld),
     .i_vblank       (c_vblank),//input
     .o_spr_ovfl     (c_spr_ovfl  ),//output          
-    .o_spr_0hit     (c_spr_0hit  ),//output          
+    .o_spr_0hit     (c_spr_0hit  ),//output        
+    .o_rde_run      (c_rde_run),//output
     .o_pt_addr      (c_pt_addr  ),//output  [11:0]  
     .i_pt_rdata     (c_pt_rdata ),//input   [15:0]  
     .o_nt_addr      (c_nt_addr  ),//output  [11:0]  

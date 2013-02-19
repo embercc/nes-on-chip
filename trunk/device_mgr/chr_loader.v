@@ -17,7 +17,7 @@ module chr_loader(
     output          o_sram_lb_n 
     
 );
-`ifdef NCSIM
+`ifdef FAST_INIT
     parameter [20:0] MAX_ROM_ADDR = 20'h01FFF;
 `else
     parameter [20:0] MAX_ROM_ADDR = 20'hfffff;
@@ -38,10 +38,11 @@ module chr_loader(
     parameter [2:0] STATE_FINISH    = 3'b111;
     reg [4:0] r_counter;
     reg       r_cnt_1;
+    reg [1:0] r_cnt_4;
     reg [7:0]   r_sram_wdata;
     reg [18:0]  r_sram_addr;
     reg         r_sram_oe_n;
-    //wire        c_sram_we_n;
+    reg         r_sram_we_n;
     reg         r_sram_ub_n;
     reg         r_sram_lb_n;
     
@@ -60,7 +61,7 @@ module chr_loader(
             end
         STATE_LOADING:
             begin
-                if(r_fl_addr==MAX_ROM_ADDR && r_cnt_1==1'b1)
+                if(r_fl_addr==MAX_ROM_ADDR && r_cnt_4==2'h3)
                     c_state_next = STATE_LOADED;
                 else
                     c_state_next = STATE_LOADING;
@@ -95,7 +96,7 @@ module chr_loader(
     always @ ( posedge i_clk or negedge i_rstn ) begin
         if(~i_rstn) begin
             r_counter <= 4'h0;
-            r_cnt_1 <= 1'b0;
+            r_cnt_4 <= 1'b0;
         end
         else begin
             if(r_state==STATE_START || r_state==STATE_LOADED) begin
@@ -109,7 +110,7 @@ module chr_loader(
             end
             
             if(r_state==STATE_LOADING) begin
-                r_cnt_1 <= ~r_cnt_1;
+                r_cnt_4 <= r_cnt_4 + 2'h1;
             end
         end
     end
@@ -132,7 +133,7 @@ module chr_loader(
         end
         else begin
             if (r_state==STATE_LOADING && r_fl_addr!=MAX_ROM_ADDR) begin
-                r_fl_addr <= r_fl_addr + {19'h0, r_cnt_1};
+                r_fl_addr <= r_fl_addr + {19'h0, {r_cnt_4==2'h3}};
             end
         end
     end
@@ -142,7 +143,7 @@ module chr_loader(
             r_sram_wdata <= 8'h00;
         end
         else begin
-            if(~r_cnt_1) begin
+            if(r_cnt_4==4'h0) begin
                 r_sram_wdata <= i_fl_rdata;
             end
         end
@@ -154,20 +155,37 @@ module chr_loader(
             r_sram_oe_n <= 1'b1;
             r_sram_ub_n <= 1'b1;
             r_sram_lb_n <= 1'b1;
-            //r_sram_we_n <= 1'b1;
+            r_sram_we_n <= 1'b1;
         end
         else begin
             if(r_state==STATE_LOADING) begin
-                if(~r_cnt_1) begin
+                if(r_cnt_4==2'h0) begin
                     r_sram_ub_n <= ~r_fl_addr[3];
                     r_sram_lb_n <= r_fl_addr[3];
                     r_sram_addr <= {r_fl_addr[19:4], r_fl_addr[2:0]};
+                end
+                else if(r_cnt_4==2'h3) begin
+                    r_sram_ub_n <= 1'b1;
+                    r_sram_lb_n <= 1'b1;
+                    r_sram_addr <= 19'h0;
                 end
             end
             else if(r_state==STATE_LOADED) begin
                 r_sram_ub_n <= 1'b1;
                 r_sram_lb_n <= 1'b1;
+                
+                r_sram_addr <= 19'h0;
+            end
+            
+            if(r_state==STATE_LOADED) begin
                 r_sram_oe_n <= 1'b0;
+            end
+            
+            if(r_state==STATE_LOADING) begin
+                if(r_cnt_4==2'h1)
+                    r_sram_we_n <= 1'b0;
+                else if(r_cnt_4==2'h2)
+                    r_sram_we_n <= 1'b1;
             end
         end    
     end
@@ -191,7 +209,7 @@ module chr_loader(
     assign o_sram_wdata[15:8] = r_sram_ub_n ? 8'h0 : r_sram_wdata;
     assign o_sram_wdata[7:0]  = r_sram_lb_n ? 8'h0 : r_sram_wdata;
     assign o_sram_oe_n = r_sram_oe_n;
-    assign o_sram_we_n = (r_state==STATE_LOADING) ? ~r_cnt_1 : 1'b1;
+    assign o_sram_we_n = r_sram_we_n;//(r_state==STATE_LOADING) ? ~r_cnt_1 : 1'b1;
     assign o_sram_ub_n = r_sram_ub_n;
     assign o_sram_lb_n = r_sram_lb_n;
     
