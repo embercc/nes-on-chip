@@ -10,6 +10,7 @@ module ppu_rde(
     input           i_vblank        ,
     output          o_spr_ovfl      ,
     output          o_spr_0hit      ,
+    output          o_rde_run       ,
     //vram port                     
     output  reg [11:0]  o_pt_addr       ,
     input       [15:0]  i_pt_rdata      ,
@@ -29,7 +30,7 @@ module ppu_rde(
     output  [7:0]   o_vbuf_wdata    
 );
 
-parameter [8:0] SCAN_X_MAX = 9'd335;
+parameter [8:0] SCAN_X_MAX = 9'd303;
 
 wire[1:0]   c_nt_base   ;
 wire        c_spr_pt_sel;
@@ -648,7 +649,7 @@ assign o_vbuf_we  = (rr_scan_y<9'd240) & ~rr_scan_x[8];
 assign o_spr_ovfl = r_spr_ovfl;
 assign o_spr_0hit = r_spr_0hit;
 
-
+assign o_rde_run = r_rde_run;
 
 
 

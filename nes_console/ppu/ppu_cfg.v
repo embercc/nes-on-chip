@@ -1,3 +1,4 @@
+//
 module ppu_cfg(
     input           i_cpu_clk   ,
     input           i_cpu_rstn  ,
@@ -25,6 +26,7 @@ module ppu_cfg(
     output          o_force_rld ,
     input           i_spr_ovfl  ,
     input           i_spr_0hit  ,
+    input           i_rde_run   ,
     input           i_vblank    ,
     output          o_nmi_n     
 );
@@ -46,8 +48,10 @@ reg [2:0]   r_fineX;
 reg [2:0]   r_fineY;
 
 reg         r_nmi_n     ;
-reg         r_vblank;
+reg         r_vblank    ;
 wire        c_vblank_pos;
+reg         r_rde_run   ;
+wire        c_rde_run_negedge;
 
 wire        c_vr_incmode;
 wire        c_nmi_ena   ;
@@ -224,6 +228,16 @@ end
 //NMI Generator
 always @ ( posedge i_cpu_clk or negedge i_cpu_rstn) begin
     if(~i_cpu_rstn) begin
+        r_rde_run <= 1'b0;
+    end
+    else begin
+        r_rde_run <= i_rde_run;
+    end
+end
+assign c_rde_run_negedge = ~i_rde_run & r_rde_run;
+
+always @ ( posedge i_cpu_clk or negedge i_cpu_rstn) begin
+    if(~i_cpu_rstn) begin
         r_vblank <= 1'b0;
     end
     else begin
@@ -231,12 +245,13 @@ always @ ( posedge i_cpu_clk or negedge i_cpu_rstn) begin
     end
 end
 assign c_vblank_pos = i_vblank & ~r_vblank;
+
 always @ ( posedge i_cpu_clk or negedge i_cpu_rstn) begin
     if(~i_cpu_rstn) begin
         r_nmi_n <= 1'b1;
     end
     else begin
-        if (c_vblank_pos)
+        if (c_vblank_pos) //if (c_rde_run_negedge)
             r_nmi_n <= 1'b0;
         else if (c_is_ppu & (c_ppu_reg==3'h2) & i_bus_wn)   //reading $2002 clears NMI
             r_nmi_n <= 1'b1;
