@@ -105,7 +105,10 @@ reg         r_vsd;
 `ifdef DUMP_WAVE
 initial begin
     $shm_open("waves.shm", , , ,1024, );
+    #42s;
     $shm_probe("AS");
+    #2s;
+    $shm_close();
 end
 `endif
 

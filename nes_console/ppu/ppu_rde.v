@@ -77,7 +77,7 @@ reg [3:0]  r_oam2_eaddr;
 wire [8:0]c_oam_deltaY;
 wire c_oam_in_range;
 wire c_oam_good;
-reg [8:0] r_scan_y_next;
+//reg [8:0] r_scan_y_next;
 reg       r_spr_ovfl;
 reg       r_spr_0hit;
 reg       r_spr_eva_period;
@@ -113,7 +113,9 @@ wire        c_sprt_7show        ;
 wire[15:0]  c_sprt_pt_in       ;
 reg [31:0]  r_oam2_rdata         ;
 
-
+reg         r_oam_primary   ;
+reg         r_sprt_0in0     ;
+wire        c_sprt_0primary ;
 
 wire [8:0]  c_oam2_deltaY;
 wire [3:0]  c_sprt_pattern;
@@ -424,24 +426,26 @@ end
 //spr evaluation
 
 //the next scanline, used for sprite evaluation.
-always @ ( posedge i_clk or negedge i_rstn) begin
-    if(~i_rstn) begin
-        r_scan_y_next <= 9'h0;
-    end
-    else begin
-        if(r_scan_y==9'd261)
-            r_scan_y_next <= 9'h0;
-        else
-            r_scan_y_next <= r_scan_y + 9'h1;
-    end
-end
+//always @ ( posedge i_clk or negedge i_rstn) begin
+//    if(~i_rstn) begin
+//        r_scan_y_next <= 9'h0;
+//    end
+//    else begin
+//        if(r_scan_y==9'd261)
+//            r_scan_y_next <= 9'h0;
+//        else
+//            r_scan_y_next <= r_scan_y + 9'h1;
+//    end
+//end
 
 assign  o_oam_addr = r_scan_x[8:6] == 3'b001 ? r_scan_x[5:0] : 6'h0;
-assign  c_oam_deltaY = r_scan_y_next - {1'b0, i_oam_rdata[7:0]};
+//assign  c_oam_deltaY = r_scan_y_next - {1'b0, i_oam_rdata[7:0]};
+assign  c_oam_deltaY = r_scan_y - {1'b0, i_oam_rdata[7:0]};
 assign  c_oam_in_range = (i_oam_rdata[7:4]==4'hF) | (i_oam_rdata[7:0]==8'h0)? 1'b0:
                          c_patt_sz ? c_oam_deltaY[8:4] == 5'h0 :
                          c_oam_deltaY[8:3]==6'h0;
-assign  c_oam_good = c_oam_in_range & ~r_oam2_eaddr[3] & (r_scan_y_next<9'd240);
+//assign  c_oam_good = c_oam_in_range & ~r_oam2_eaddr[3] & (r_scan_y_next<9'd240);
+assign  c_oam_good = c_oam_in_range & ~r_oam2_eaddr[3] & (r_scan_y<9'd240);
 
 //spr evaluation period,  valid time  of  c_oam_in_range and c_oam_good 
 always @ ( posedge i_clk or negedge i_rstn) begin
@@ -485,6 +489,32 @@ assign o_oam2_we = r_scan_x[8:3]==6'h0 ? 1'b1 :
                    r_spr_eva_period ? c_oam_good :
                    1'b0 ;
 
+//primary sprite flag. the first sprite in OAM
+always @(posedge i_clk or negedge i_rstn) begin
+    if(~i_rstn) begin
+        r_oam_primary <= 1'b0;
+    end
+    else begin
+        if(o_oam_addr==6'h0)
+            r_oam_primary <= 1'b1;
+        else 
+            r_oam_primary <= 1'b0;
+    end
+end
+//primary sprite in range: indicate that the first sprite in oam2 is primary.
+always @(posedge i_clk or negedge i_rstn) begin
+    if(~i_rstn) begin
+        r_sprt_0in0 <= 1'b0;
+    end
+    else begin
+        if((o_oam2_addr==3'h0) & o_oam2_we) begin
+            if(r_oam_primary)
+                r_sprt_0in0 <= 1'b1;
+            else 
+                r_sprt_0in0 <= 1'b0;
+        end
+    end
+end
 
 //pipeline spr
 assign c_sprt_run = ~r_scan_x[8];
@@ -506,7 +536,8 @@ always @ ( * ) begin
     end
 end
 
-assign  c_oam2_deltaY = r_scan_y_next - {1'b0, i_oam2_rdata[7:0]};
+//assign  c_oam2_deltaY = r_scan_y_next - {1'b0, i_oam2_rdata[7:0]};
+assign  c_oam2_deltaY = r_scan_y - {1'b0, i_oam2_rdata[7:0]};
 
 always @ ( * ) begin
     if(c_patt_sz) begin //8x16
@@ -583,6 +614,7 @@ If background or sprite clipping is enabled, x must be greater than or equal to 
 */
 assign c_spr_0hit = c_bg_ena &
                     c_spr_ena &
+                    c_sprt_0primary & 
                     c_sprt_0show &
                     (c_sprt_0pattern[1:0]!=2'h0) &
                     (c_bg_pixel[1:0]!=2'h0) &
@@ -607,7 +639,7 @@ assign c_mixed_pattern = (~c_spr_ena & ~c_bg_ena) ? 5'h0:
                          (c_spr_ena & ~c_bg_ena) ? {1'b1, c_sprt_pattclip} :
                          (~c_spr_ena & c_bg_ena) ? {1'b0, c_bg_pixel} :
                         ~c_sprt_prioclip ? {1'b1, c_sprt_pattclip}:
-                         c_bg_pixel==4'h0 ? {1'b1, c_sprt_pattclip}:
+                         c_bg_pixel[1:0]==2'h0 ? {1'b1, c_sprt_pattclip}:
                          {1'b0, c_bg_pixel};
 
 assign o_plt_addr = c_mixed_pattern;
@@ -656,6 +688,7 @@ assign o_rde_run = r_rde_run;
 ppu_spr_ppl spr_ppl_0(
     .i_clk          (i_clk),//input           
     .i_rstn         (i_rstn),//input           
+    .i_primary      (r_sprt_0in0),
     .i_xcnt         (i_oam2_rdata[31:24]),//input [7:0]     
     .i_xcnt_wr      (r_sprt_xcnt_we[0]),//input           
     .i_attr         (i_oam2_rdata[23:16]),//input [7:0]     
@@ -663,6 +696,7 @@ ppu_spr_ppl spr_ppl_0(
     .i_patt         (c_sprt_pt_in),//input [15:0]    
     .i_patt_we      (r_sprt_pt_we[0]),//input           
     .i_run          (c_sprt_run),//input           
+    .o_primary      (c_sprt_0primary),
     .o_priority     (c_sprt_0priority),//output          
     .o_pattern      (c_sprt_0pattern ),//output[3:0]     
     .o_show         (c_sprt_0show    ) //output          
@@ -671,6 +705,7 @@ ppu_spr_ppl spr_ppl_0(
 ppu_spr_ppl spr_ppl_1(
     .i_clk          (i_clk),//input           
     .i_rstn         (i_rstn),//input           
+    .i_primary      (1'b0),
     .i_xcnt         (i_oam2_rdata[31:24]),//input [7:0]     
     .i_xcnt_wr      (r_sprt_xcnt_we[1]),//input           
     .i_attr         (i_oam2_rdata[23:16]),//input [7:0]     
@@ -678,6 +713,7 @@ ppu_spr_ppl spr_ppl_1(
     .i_patt         (c_sprt_pt_in),//input [15:0]    
     .i_patt_we      (r_sprt_pt_we[1]),//input           
     .i_run          (c_sprt_run),//input           
+    .o_primary      (),
     .o_priority     (c_sprt_1priority),//output          
     .o_pattern      (c_sprt_1pattern ),//output[3:0]     
     .o_show         (c_sprt_1show    ) //output  
@@ -686,6 +722,7 @@ ppu_spr_ppl spr_ppl_1(
 ppu_spr_ppl spr_ppl_2(
     .i_clk          (i_clk),//input           
     .i_rstn         (i_rstn),//input           
+    .i_primary      (1'b0),
     .i_xcnt         (i_oam2_rdata[31:24]),//input [7:0]     
     .i_xcnt_wr      (r_sprt_xcnt_we[2]),//input           
     .i_attr         (i_oam2_rdata[23:16]),//input [7:0]     
@@ -693,6 +730,7 @@ ppu_spr_ppl spr_ppl_2(
     .i_patt         (c_sprt_pt_in),//input [15:0]    
     .i_patt_we      (r_sprt_pt_we[2]),//input           
     .i_run          (c_sprt_run),//input           
+    .o_primary      (),
     .o_priority     (c_sprt_2priority),//output          
     .o_pattern      (c_sprt_2pattern ),//output[3:0]     
     .o_show         (c_sprt_2show    ) //output   
@@ -701,6 +739,7 @@ ppu_spr_ppl spr_ppl_2(
 ppu_spr_ppl spr_ppl_3(
     .i_clk          (i_clk),//input           
     .i_rstn         (i_rstn),//input           
+    .i_primary      (1'b0),
     .i_xcnt         (i_oam2_rdata[31:24]),//input [7:0]     
     .i_xcnt_wr      (r_sprt_xcnt_we[3]),//input           
     .i_attr         (i_oam2_rdata[23:16]),//input [7:0]     
@@ -708,6 +747,7 @@ ppu_spr_ppl spr_ppl_3(
     .i_patt         (c_sprt_pt_in),//input [15:0]    
     .i_patt_we      (r_sprt_pt_we[3]),//input           
     .i_run          (c_sprt_run),//input           
+    .o_primary      (),
     .o_priority     (c_sprt_3priority),//output          
     .o_pattern      (c_sprt_3pattern ),//output[3:0]     
     .o_show         (c_sprt_3show    ) //output  
@@ -716,6 +756,7 @@ ppu_spr_ppl spr_ppl_3(
 ppu_spr_ppl spr_ppl_4(
     .i_clk          (i_clk),//input           
     .i_rstn         (i_rstn),//input           
+    .i_primary      (1'b0),
     .i_xcnt         (i_oam2_rdata[31:24]),//input [7:0]     
     .i_xcnt_wr      (r_sprt_xcnt_we[4]),//input           
     .i_attr         (i_oam2_rdata[23:16]),//input [7:0]     
@@ -723,6 +764,7 @@ ppu_spr_ppl spr_ppl_4(
     .i_patt         (c_sprt_pt_in),//input [15:0]    
     .i_patt_we      (r_sprt_pt_we[4]),//input           
     .i_run          (c_sprt_run),//input           
+    .o_primary      (),
     .o_priority     (c_sprt_4priority),//output          
     .o_pattern      (c_sprt_4pattern ),//output[3:0]     
     .o_show         (c_sprt_4show    ) //output  
@@ -731,6 +773,7 @@ ppu_spr_ppl spr_ppl_4(
 ppu_spr_ppl spr_ppl_5(
     .i_clk          (i_clk),//input           
     .i_rstn         (i_rstn),//input           
+    .i_primary      (1'b0),
     .i_xcnt         (i_oam2_rdata[31:24]),//input [7:0]     
     .i_xcnt_wr      (r_sprt_xcnt_we[5]),//input           
     .i_attr         (i_oam2_rdata[23:16]),//input [7:0]     
@@ -738,6 +781,7 @@ ppu_spr_ppl spr_ppl_5(
     .i_patt         (c_sprt_pt_in),//input [15:0]    
     .i_patt_we      (r_sprt_pt_we[5]),//input           
     .i_run          (c_sprt_run),//input           
+    .o_primary      (),
     .o_priority     (c_sprt_5priority),//output          
     .o_pattern      (c_sprt_5pattern ),//output[3:0]     
     .o_show         (c_sprt_5show    ) //output  
@@ -746,6 +790,7 @@ ppu_spr_ppl spr_ppl_5(
 ppu_spr_ppl spr_ppl_6(
     .i_clk          (i_clk),//input           
     .i_rstn         (i_rstn),//input           
+    .i_primary      (1'b0),
     .i_xcnt         (i_oam2_rdata[31:24]),//input [7:0]     
     .i_xcnt_wr      (r_sprt_xcnt_we[6]),//input           
     .i_attr         (i_oam2_rdata[23:16]),//input [7:0]     
@@ -753,6 +798,7 @@ ppu_spr_ppl spr_ppl_6(
     .i_patt         (c_sprt_pt_in),//input [15:0]    
     .i_patt_we      (r_sprt_pt_we[6]),//input           
     .i_run          (c_sprt_run),//input           
+    .o_primary      (),
     .o_priority     (c_sprt_6priority),//output          
     .o_pattern      (c_sprt_6pattern ),//output[3:0]     
     .o_show         (c_sprt_6show    ) //output  
@@ -761,6 +807,7 @@ ppu_spr_ppl spr_ppl_6(
 ppu_spr_ppl spr_ppl_7(
     .i_clk          (i_clk),//input           
     .i_rstn         (i_rstn),//input           
+    .i_primary      (1'b0),
     .i_xcnt         (i_oam2_rdata[31:24]),//input [7:0]     
     .i_xcnt_wr      (r_sprt_xcnt_we[7]),//input           
     .i_attr         (i_oam2_rdata[23:16]),//input [7:0]     
@@ -768,6 +815,7 @@ ppu_spr_ppl spr_ppl_7(
     .i_patt         (c_sprt_pt_in),//input [15:0]    
     .i_patt_we      (r_sprt_pt_we[7]),//input           
     .i_run          (c_sprt_run),//input           
+    .o_primary      (),
     .o_priority     (c_sprt_7priority),//output          
     .o_pattern      (c_sprt_7pattern ),//output[3:0]     
     .o_show         (c_sprt_7show    ) //output  

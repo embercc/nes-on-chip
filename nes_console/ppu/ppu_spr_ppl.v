@@ -1,6 +1,7 @@
 module ppu_spr_ppl(
     input           i_clk       ,
     input           i_rstn      ,
+    input           i_primary   ,
     input [7:0]     i_xcnt      ,
     input           i_xcnt_wr   ,
     input [7:0]     i_attr      ,
@@ -8,9 +9,11 @@ module ppu_spr_ppl(
     input [15:0]    i_patt      ,
     input           i_patt_we   ,
     input           i_run       ,
+    output          o_primary   ,
     output          o_priority  ,//0 in front of background, 1 behind
     output[3:0]     o_pattern   ,
-    output          o_show
+    output          o_show      
+    
 );
 
 reg [7:0]  r_xcnt;
@@ -20,6 +23,9 @@ reg        r_mirrorX;
 reg [7:0]  r_pt_H;
 reg [7:0]  r_pt_L;
 reg [8:0]  r_show_cnt;
+reg        r_primary;
+
+
 
 // attribute
 always @ (posedge i_clk or negedge i_rstn) begin
@@ -27,12 +33,14 @@ always @ (posedge i_clk or negedge i_rstn) begin
         r_paletteH <= 2'h0;
         r_priority <= 1'b0;
         r_mirrorX <= 1'b0;
+        r_primary <= 1'b0;
     end
     else begin
         if(i_attr_we) begin
             r_paletteH <= i_attr[1:0];
             r_priority <= i_attr[5];
             r_mirrorX <= i_attr[6];
+            r_primary <= i_primary;
         end
     end
 end
@@ -91,6 +99,6 @@ end
 assign o_priority  = r_priority;
 assign o_pattern = {r_paletteH, r_pt_H[7], r_pt_L[7]};
 assign o_show = (r_xcnt==8'h0) & ~r_show_cnt[8];
-
+assign o_primary = r_primary;
 
 endmodule
