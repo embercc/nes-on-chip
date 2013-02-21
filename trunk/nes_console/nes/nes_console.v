@@ -13,6 +13,9 @@ module nes_console(
     output          o_sram_ub_n     ,
     output          o_sram_lb_n     ,
 //prg_rom, drived by cpu
+    input   [1:0]   i_flash_bank    ,
+    input   [2:0]   i_nrom_mirrmode ,
+    input   [1:0]   i_nrom_gamesel  ,
     output  [22:0]  o_fl_addr       ,
     input   [7:0]   i_fl_rdata      ,
 //LCD output
@@ -162,6 +165,9 @@ nes_mmc_set mmc_cart(
     .i_bus_r_wn     (c_bus_r_wn),//input           
     .o_mmc_rdata    (c_mmc_rdata),//output[7:0]     
     
+    .i_flash_bank       (i_flash_bank   ),
+    .i_nrom_mirrmode    (i_nrom_mirrmode),
+    .i_nrom_gamesel     (i_nrom_gamesel ), 
     .o_fl_addr      (o_fl_addr), //output[22:0]
     .i_fl_rdata     (i_fl_rdata),//input [7:0]     
     

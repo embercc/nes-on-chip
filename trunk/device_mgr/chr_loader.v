@@ -3,6 +3,9 @@ module chr_loader(
     input           i_rstn      ,
     //cpu
     output          o_done      ,
+    input   [1:0]   i_fl_bank      ,
+    input   [2:0]   i_nrom_mirrmode,
+    input   [1:0]   i_nrom_gamesel ,
     //flash
     output [22:0]   o_fl_addr   , 
     input  [7:0]    i_fl_rdata  ,
@@ -17,11 +20,13 @@ module chr_loader(
     output          o_sram_lb_n 
     
 );
+    
 `ifdef FAST_INIT
-    parameter [20:0] MAX_ROM_ADDR = 20'h01FFF;
+    parameter [19:0] MAX_ROM_ADDR = 20'h07FFF;
 `else
-    parameter [20:0] MAX_ROM_ADDR = 20'hfffff;
+    parameter [19:0] MAX_ROM_ADDR = 20'hfffff;
 `endif
+    parameter [19:0] MAX_NROM_ADDR = 20'h07FFF;
     
     reg     r_done;
     
@@ -37,7 +42,7 @@ module chr_loader(
     parameter [2:0] STATE_PRE_FINISH= 3'b100;
     parameter [2:0] STATE_FINISH    = 3'b111;
     reg [4:0] r_counter;
-    reg       r_cnt_1;
+    //reg       r_cnt_1;
     reg [1:0] r_cnt_4;
     reg [7:0]   r_sram_wdata;
     reg [18:0]  r_sram_addr;
@@ -45,6 +50,17 @@ module chr_loader(
     reg         r_sram_we_n;
     reg         r_sram_ub_n;
     reg         r_sram_lb_n;
+       
+    wire        c_is_nrom;
+    wire[19:0]  c_max_write;
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+    
+    assign c_rom_base = i_fl_bank;
+    assign c_is_nrom = (c_rom_base==2'h0);
+    assign c_max_write = c_is_nrom ? MAX_NROM_ADDR : MAX_ROM_ADDR;
     
     always @ ( * ) begin
         case(r_state)
@@ -61,7 +77,7 @@ module chr_loader(
             end
         STATE_LOADING:
             begin
-                if(r_fl_addr==MAX_ROM_ADDR && r_cnt_4==2'h3)
+                if(r_fl_addr==c_max_write && r_cnt_4==2'h3)
                     c_state_next = STATE_LOADED;
                 else
                     c_state_next = STATE_LOADING;
@@ -132,7 +148,7 @@ module chr_loader(
             r_fl_addr <= 20'h00000;
         end
         else begin
-            if (r_state==STATE_LOADING && r_fl_addr!=MAX_ROM_ADDR) begin
+            if (r_state==STATE_LOADING && r_fl_addr!=c_max_write) begin
                 r_fl_addr <= r_fl_addr + {19'h0, {r_cnt_4==2'h3}};
             end
         end
@@ -199,8 +215,11 @@ module chr_loader(
     /*
     OUTPUT: flash
     */
-    assign c_rom_base = 2'b00;
-    assign o_fl_addr = {1'b1, c_rom_base, r_fl_addr};
+
+    assign o_fl_addr[22] = 1'b1;
+    assign o_fl_addr[21:20] = c_rom_base;
+    assign o_fl_addr[19:15] = c_is_nrom ? {i_nrom_mirrmode, i_nrom_gamesel} : r_fl_addr[19:15];
+    assign o_fl_addr[14:0] = r_fl_addr[14:0];
     
     /*
     OUTPUT: sram

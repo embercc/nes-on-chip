@@ -105,10 +105,10 @@ reg         r_vsd;
 `ifdef DUMP_WAVE
 initial begin
     $shm_open("waves.shm", , , ,1024, );
-    #42s;
+    //#42s;
     $shm_probe("AS");
-    #2s;
-    $shm_close();
+    //#2s;
+    //$shm_close();
 end
 `endif
 
@@ -318,8 +318,8 @@ prg_chr_rom(
 */
 
 flash_bhv #(
-    .PRG_INITVEC("/workspace/nesdev/nes_project/roms/S_mario_2.nes.prg.txt"),
-    .CHR_INITVEC("/workspace/nesdev/nes_project/roms/S_mario_2.nes.chr.txt")
+    .PRG_INITVEC("/workspace/nesdev/nes_project/roms/H_90tank.nes.prg.txt"),
+    .CHR_INITVEC("/workspace/nesdev/nes_project/roms/H_90tank.nes.chr.txt")
 )
 prg_chr_rom(
     .i_addr     (FL_ADDR),//input   [22:0] 

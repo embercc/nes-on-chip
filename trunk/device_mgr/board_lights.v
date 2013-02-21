@@ -6,6 +6,7 @@ module board_lights(
     input   [7:0]   i_nes_cpu_ir    ,
     input   [7:0]   i_nes_cpu_p     ,
     input           i_fl_ry         ,
+    input   [17:0]  i_sw            ,
     output  [8:0]   o_LEDG          ,
     output  [17:0]  o_LEDR          ,
     output  [6:0]   o_HEX0          ,
@@ -33,7 +34,7 @@ module board_lights(
         .o_led  (o_LEDR[0])
     );
 
-
+    assign o_LEDR[17:11] = i_sw[17:11];
 
     hex2sig_rotate sig0(
         .i_hex          (i_nes_cpu_pc[15:12]),

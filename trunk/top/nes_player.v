@@ -254,14 +254,20 @@ wire [9:0]  c_jp_vec_2p;
 wire    c_nes_rstn;
 wire    c_mgr_initdone;
 
+wire [1:0]  c_flash_bank;
+wire [2:0]  c_nrom_mirrmode;
+wire [1:0]  c_nrom_gamesel;
+
+
 //=======================================================
 //  Structural coding
 //=======================================================
+
+assign {c_flash_bank, c_nrom_mirrmode, c_nrom_gamesel} = SW[17:11];
+
 /*
 reset signal generate
 */
-
-
 `ifdef NCSIM
     assign i_rstn = KEY[0];
 `else
@@ -371,7 +377,10 @@ nes_console nes_console(
     .o_sram_we_n     (c_nes_sram_we_n),//output          
     .o_sram_oe_n     (c_nes_sram_oe_n),//output          
     .o_sram_ub_n     (c_nes_sram_ub_n),//output          
-    .o_sram_lb_n     (c_nes_sram_lb_n),//output          
+    .o_sram_lb_n     (c_nes_sram_lb_n),//output        
+    .i_flash_bank       (c_flash_bank   ),
+    .i_nrom_mirrmode    (c_nrom_mirrmode),
+    .i_nrom_gamesel     (c_nrom_gamesel ),  
     .o_fl_addr       (c_nes_fl_addr),//output  [22:0]  
     .i_fl_rdata      (c_fl_q),//input   [7:0]   
     .o_lcd_pixel     ({MTL_R, MTL_G, MTL_B}),
@@ -395,6 +404,7 @@ board_lights board_lights(
     .i_nes_cpu_ir    (c_nes_cpu_ir),//input   [7:0]   
     .i_nes_cpu_p     (c_nes_cpu_p),//input   [7:0]   
     .i_fl_ry         (FL_RY),//input           
+    .i_sw            (SW),
     .o_LEDG          (LEDG),//output  [8:0]   
     .o_LEDR          (LEDR),//output  [17:0]  
     .o_HEX0          (HEX0),//output  [6:0]   
@@ -412,6 +422,9 @@ device_mgr device_mgr(
     .i_rstn_sync_ppu    (c_rstn_sync_ppu),//input           
     .i_cpu_clk          (c_clk_cpu),//input           
     .i_ppu_clk          (c_clk_ppu),//input           
+    .i_flash_bank       (c_flash_bank   ),
+    .i_nrom_mirrmode    (c_nrom_mirrmode),
+    .i_nrom_gamesel     (c_nrom_gamesel ),
     .i_ps2_clk          (c_ps2_rxclk),//input           
     .i_ps2_data         (c_ps2_rxdata),//input           
     .o_ps2_txclk        (c_ps2_txclk),//output          

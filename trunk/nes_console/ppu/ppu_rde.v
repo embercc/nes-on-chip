@@ -35,7 +35,7 @@ parameter [8:0] SCAN_X_MAX = 9'd303;
 wire[1:0]   c_nt_base   ;
 wire        c_spr_pt_sel;
 wire        c_bg_pt_sel ;
-wire        c_patt_sz   ;
+wire        c_patt_sz   ;//sprite only
 //wire        c_high_b    ;
 //wire        c_high_g    ;
 //wire        c_high_r    ;
@@ -388,12 +388,12 @@ assign o_nt_addr[9:0] = ~c_pixel_calc ? 10'h0 :
 always @ ( * ) begin
     if ( c_pixel_calc ) begin
         if (r_scan_x[2:0]==3'h6) begin
-            if(c_patt_sz) begin //8x16
-                o_pt_addr = {i_nt_rdata[0], i_nt_rdata[7:1], r_ntY[0], r_fineY};
-            end
-            else begin //8x8
+            //if(c_patt_sz) begin //8x16
+            //    o_pt_addr = {i_nt_rdata[0], i_nt_rdata[7:1], r_ntY[0], r_fineY};
+            //end
+            //else begin //8x8
                 o_pt_addr = {c_bg_pt_sel, i_nt_rdata[7:0], r_fineY};
-            end
+            //end
         end
         else begin
             o_pt_addr = 12'h0;
