@@ -4,6 +4,10 @@ module device_mgr(
     input           i_cpu_clk       ,
     input           i_ppu_clk       ,
     
+    input   [1:0]   i_flash_bank    ,
+    input   [2:0]   i_nrom_mirrmode ,
+    input   [1:0]   i_nrom_gamesel  ,
+    
     input           i_ps2_clk       ,
     input           i_ps2_data      ,
     output          o_ps2_txclk     ,
@@ -83,6 +87,9 @@ chr_loader chr_loader(
     .i_clk          (i_ppu_clk),//ppu clk//input           
     .i_rstn         (i_rstn_sync_ppu),         //input           
     .o_done         (c_chr_loader_done),         //output          
+    .i_fl_bank      (i_flash_bank   ),
+    .i_nrom_mirrmode(i_nrom_mirrmode),
+    .i_nrom_gamesel (i_nrom_gamesel ),
     .o_fl_addr      (o_fl_addr),         //output [22:0]   
     .i_fl_rdata     (i_fl_rdata),         //input  [7:0]    
     .o_sram_addr    (o_sram_addr ),         //output  [19:0]  
