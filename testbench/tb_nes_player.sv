@@ -130,7 +130,9 @@ assign  AUD_BCLK        = 1'hz;
 assign  AUD_DACLRCK     = 1'hz;
 assign  I2C_SDAT        = 1'hz;
 
-assign SW = 18'h0;
+assign SW[10:0] = 11'h0;
+
+assign SW[17:11] = 7'b0000000;
 
 clk_gen #( .HALFCYCLE(10ns)) BOARD_CLK(
     .clk(CLOCK_50)
@@ -318,8 +320,8 @@ prg_chr_rom(
 */
 
 flash_bhv #(
-    .PRG_INITVEC("/workspace/nesdev/nes_project/roms/H_90tank.nes.prg.txt"),
-    .CHR_INITVEC("/workspace/nesdev/nes_project/roms/H_90tank.nes.chr.txt")
+    .PRG_INITVEC("/workspace/nesdev/nes_project/roms/flash_img.img.txt")
+    //.CHR_INITVEC("/workspace/nesdev/nes_project/roms/H_90tank.nes.chr.txt")
 )
 prg_chr_rom(
     .i_addr     (FL_ADDR),//input   [22:0] 
