@@ -1,6 +1,6 @@
 module flash_bhv #(
-    parameter PRG_INITVEC = "prg_init.txt",
-    parameter CHR_INITVEC = "chr_init.txt"
+    parameter PRG_INITVEC = "prg_init.txt"
+    //parameter CHR_INITVEC = "chr_init.txt"
 )(
     input   [22:0]  i_addr  ,
     output  [7:0]  o_q
@@ -11,7 +11,7 @@ module flash_bhv #(
     assign  o_q = mem_array[i_addr];
     
     initial begin
-        $readmemh(PRG_INITVEC, mem_array, 23'h000000, 23'h0fffff);
-        $readmemh(CHR_INITVEC, mem_array, 23'h400000, 23'h4fffff);
+        $readmemh(PRG_INITVEC, mem_array);
+        //$readmemh(CHR_INITVEC, mem_array, 23'h400000, 23'h4fffff);
     end
 endmodule

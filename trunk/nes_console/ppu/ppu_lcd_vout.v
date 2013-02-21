@@ -58,6 +58,7 @@ wire        c_jp_mon_b_2p       ;
 wire        c_jp_mon_a_2p       ;
 wire        c_jp_mon_tb_2p      ;
 wire        c_jp_mon_ta_2p      ;
+wire        c_spliter           ;
 //wire        c_jp_mon_select_2p  ;
 //wire        c_jp_mon_start_2p   ;
 
@@ -178,6 +179,8 @@ assign c_jp_mon_b_2p        = (r_lcd_xx[9:2]==8'd196) & (r_lcd_yy[8:2]==7'd118);
 assign c_jp_mon_a_2p        = (r_lcd_xx[9:2]==8'd198) & (r_lcd_yy[8:2]==7'd118);
 assign c_jp_mon_tb_2p       = (r_lcd_xx[9:2]==8'd196) & (r_lcd_yy[8:2]==7'd116);
 assign c_jp_mon_ta_2p       = (r_lcd_xx[9:2]==8'd198) & (r_lcd_yy[8:2]==7'd116);
+
+assign c_spliter            = (r_lcd_xx[9:0]==10'd513);
 //assign c_jp_mon_select_1p   = (r_lcd_xx[9:2]==8'd192) & (r_lcd_yy[8:2]==7'd113);
 //assign c_jp_mon_start_1p    = (r_lcd_xx[9:2]==8'd194) & (r_lcd_yy[8:2]==7'd113);
 /*
@@ -213,6 +216,7 @@ always @ (posedge i_lcd_clk) begin
         c_jp_mon_a_2p       :            begin                {o_lcd_r, o_lcd_g, o_lcd_b} <= {{8{i_jp_vec_2p[4]}}, 8'h00, ~{8{i_jp_vec_2p[4]}}};            end
         c_jp_mon_tb_2p      :            begin                {o_lcd_r, o_lcd_g, o_lcd_b} <= {{8{i_jp_vec_2p[3]}}, 8'h00, ~{8{i_jp_vec_2p[3]}}};            end
         c_jp_mon_ta_2p      :            begin                {o_lcd_r, o_lcd_g, o_lcd_b} <= {{8{i_jp_vec_2p[2]}}, 8'h00, ~{8{i_jp_vec_2p[2]}}};            end
+        c_spliter           :            begin                {o_lcd_r, o_lcd_g, o_lcd_b} <= {8'h00, {8{r_lcd_yy[4]}}, ~{8{r_lcd_yy[4]}}};            end
         default:
             {o_lcd_r, o_lcd_g, o_lcd_b} <= {8'h00, 8'h00, 8'h00};
         endcase
