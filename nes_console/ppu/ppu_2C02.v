@@ -21,6 +21,7 @@ module ppu_2C02(
     output          o_nmi_n         ,
     input   [2:0]   i_mirror_mode   ,
     
+    input           i_sram_wp       ,
     output  [11:0]  o_sram_addr     ,
     output  [15:0]  o_sram_wdata    ,
     input   [15:0]  i_sram_rdata    ,
@@ -184,6 +185,7 @@ ppu_vram ppu_vram(
     .o_nt_rdata         (c_nt_rdata ), //output      [7:0]   
     .i_plt_addr         (c_plt_addr ), //input       [4:0]   
     .o_plt_rdata        (c_plt_rdata), //output      [7:0]   
+    .i_sram_wp          (i_sram_wp),
     .o_sram_addr        (o_sram_addr), //output      [11:0]  
     .o_sram_wdata       (o_sram_wdata), //output      [15:0]  
     .i_sram_rdata       (i_sram_rdata), //input       [15:0]  

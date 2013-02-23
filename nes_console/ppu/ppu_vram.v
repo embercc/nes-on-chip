@@ -19,6 +19,7 @@ module ppu_vram(
     input       [4:0]   i_plt_addr      ,
     output      [7:0]   o_plt_rdata     ,
     //chr-ram port
+    input               i_sram_wp       ,
     output      [11:0]  o_sram_addr     ,
     output      [15:0]  o_sram_wdata    ,
     input       [15:0]  i_sram_rdata    ,
@@ -138,7 +139,7 @@ the other rams are dprams, the cfg-rw and ppu-rw are via seperate logics.
 */
 assign o_sram_addr  = i_2007_visit ? c_cfg_pt_addr  : i_pt_addr ;
 assign o_sram_wdata = i_2007_visit ? c_cfg_pt_wdata : 16'h0;
-assign o_sram_we_n  = i_2007_visit ? c_cfg_pt_we_n  : 1'b1 ;
+assign o_sram_we_n  = (i_2007_visit ? c_cfg_pt_we_n  : 1'b1) | i_sram_wp ;
 assign o_sram_oe_n  = i_2007_visit ? c_cfg_pt_oe_n  : 1'b0 ;
 assign o_sram_ub_n  = i_2007_visit ? c_cfg_pt_ub_n  : 1'b0 ;
 assign o_sram_lb_n  = i_2007_visit ? c_cfg_pt_lb_n  : 1'b0 ;

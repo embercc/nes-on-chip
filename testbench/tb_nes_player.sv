@@ -132,23 +132,37 @@ assign  I2C_SDAT        = 1'hz;
 
 assign SW[10:0] = 11'h0;
 
-assign SW[17:11] = 7'b0000000;
+assign SW[17:11] = 7'b0000101;
 
 clk_gen #( .HALFCYCLE(10ns)) BOARD_CLK(
     .clk(CLOCK_50)
 );
 
+
+
+
+
+
 initial begin
     reset_system;
-    idle_for_20s;
-    idle_for_20s;
-    idle_for_20s;
-    //press_start();
-    //release_all();
+    idle_seconds(1);
+    press_start();
+    release_all();
+    idle_seconds(6);
     //joypad_sequence;
     $display("simulation end,");
     $finish;
 end
+
+
+
+
+
+
+
+
+
+
 
 //frame counter
 integer frame_counter;
@@ -213,7 +227,11 @@ end
 ///////////////////////////////////////////////////
 ///////////////////////////////////////////////////
 ///////////////////////////////////////////////////
-
+task idle_seconds(integer sec);
+    repeat(sec)begin
+        #1s;
+    end
+endtask
 
 task idle_for_20s;
     #20s;
