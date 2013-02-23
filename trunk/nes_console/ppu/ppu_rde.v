@@ -30,7 +30,7 @@ module ppu_rde(
     output  [7:0]   o_vbuf_wdata    
 );
 
-parameter [8:0] SCAN_X_MAX = 9'd303;
+parameter [8:0] SCAN_X_MAX = 9'd319;
 
 wire[1:0]   c_nt_base   ;
 wire        c_spr_pt_sel;

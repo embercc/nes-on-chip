@@ -15,7 +15,7 @@ module nes_mmc_set(
     input [7:0]     i_fl_rdata      ,
     
     output[19:12]   o_sram_addr_ext ,
-    
+    output          o_sram_wp       ,
     output[2:0]     o_mirror_mode   ,
     output          o_irq_n
 );
@@ -56,5 +56,7 @@ module nes_mmc_set(
     assign  o_sram_addr_ext = r_sram_addr_ext;
     //assign  o_mirror_mode = 3'h0; //horizontal
     assign  o_mirror_mode = i_nrom_mirrmode; //vertical
+    assign o_sram_wp = ~i_flash_bank[1];
+    
     assign  o_irq_n = 1'b1;
 endmodule

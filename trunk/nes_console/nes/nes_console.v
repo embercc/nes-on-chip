@@ -76,6 +76,7 @@ wire c_rstn_lcd;
 wire c_irq_n;
 wire c_irq_mmc_n;
 wire c_nmi_n;
+wire c_sram_wp;
 
 /*
 IRQ open collector
@@ -172,7 +173,7 @@ nes_mmc_set mmc_cart(
     .i_fl_rdata     (i_fl_rdata),//input [7:0]     
     
     .o_sram_addr_ext(o_sram_addr[19:12]),
-    
+    .o_sram_wp      (c_sram_wp),
     .o_mirror_mode  (c_mirror_mode),//output[2:0]     
     .o_irq_n        (c_irq_mmc_n)
 );
@@ -213,6 +214,7 @@ ppu_2C02 ppu_2C02(
     .o_nmi_n        (c_nmi_n),//input
     .i_mirror_mode  (c_mirror_mode),//input
     
+    .i_sram_wp      (c_sram_wp),
     .o_sram_addr     (o_sram_addr[11:0]),//output  [11:0]  
     .o_sram_wdata    (o_sram_wdata),//output  [15:0]  
     .i_sram_rdata    (i_sram_rdata),//input   [15:0]  
