@@ -132,7 +132,7 @@ assign  I2C_SDAT        = 1'hz;
 
 assign SW[10:0] = 11'h0;
 
-assign SW[17:11] = 7'b0000101;
+assign SW[17:11] = 7'b0000110;
 
 clk_gen #( .HALFCYCLE(10ns)) BOARD_CLK(
     .clk(CLOCK_50)
@@ -145,7 +145,7 @@ clk_gen #( .HALFCYCLE(10ns)) BOARD_CLK(
 
 initial begin
     reset_system;
-    idle_seconds(1);
+    idle_seconds(3);
     press_start();
     release_all();
     idle_seconds(6);
